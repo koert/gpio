@@ -1,7 +1,8 @@
 package org.beaglebone.gpio;
 
 /**
- * @author koert
+ * Failure to configure pin.
+ * @author Koert Zeilstra
  */
 public class PinConfigurationException extends RuntimeException {
     public PinConfigurationException(String message) {

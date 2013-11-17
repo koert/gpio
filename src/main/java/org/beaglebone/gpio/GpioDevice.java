@@ -19,7 +19,14 @@ public class GpioDevice {
 
     private Map<PinDefinition, PinUse> exportedPins = new HashMap<PinDefinition, PinUse>();
 
-    public void setup(final PinDefinition pinDefinition, PinUse pinUse) throws IOException, PinConfigurationException {
+    /**
+     * Setup pin before use.
+     * @param pinDefinition Pin to be setup.
+     * @param pinUse How to use this pin.
+     * @throws IOException Failed to write to device.
+     * @throws PinConfigurationException Failed to configure pin.
+     */
+    public void setup(PinDefinition pinDefinition, PinUse pinUse) throws IOException, PinConfigurationException {
         if (exportedPins.containsKey(pinDefinition)) {
             throw new PinConfigurationException("Attempted to reconfigure pin: " + pinDefinition.getName());
         } else {
@@ -59,6 +66,12 @@ public class GpioDevice {
         }
     }
 
+    /**
+     * Set value of output pin.
+     * @param pinDefinition Pin.
+     * @param value True: high, false: low.
+     * @throws IOException Failed to write to device.
+     */
     public void setValue(PinDefinition pinDefinition, boolean value) throws IOException {
         if (exportedPins.containsKey(pinDefinition)) {
             if (exportedPins.get(pinDefinition) == PinUse.OUTPUT_DIGITAL) {
@@ -91,10 +104,21 @@ public class GpioDevice {
 //    close(fd);
     }
 
+    /**
+     * Read state of pin.
+     * @param pinDefinition Pin.
+     * @return True if input is high, otherwise false.
+     */
     public boolean getBooleanValue(PinDefinition pinDefinition) {
         return false;
     }
 
+    /**
+     * Write text to device.
+     * @param device Full device path.
+     * @param text Text to write.
+     * @throws IOException Failed to write to device.
+     */
     private void writeToDevice(String device, String text) throws IOException {
         OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(device));
         writer.write(text);

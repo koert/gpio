@@ -3,19 +3,28 @@ package org.beaglebone.gpio;
 import java.io.IOException;
 
 /**
- * @author koert
+ * Input pin.
+ * @author Koert Zeilstra
  */
 public class InputPin {
     private PinDefinition pinDefinition;
     private GpioDevice device;
 
-
-    public InputPin(PinDefinition pinDefinition, GpioDevice device) throws IOException {
+    /**
+     * Constructor.
+     * @param pinDefinition Pin.
+     * @param device Device abstraction.
+     * @throws IOException Failed to read/write device.
+     */
+    InputPin(PinDefinition pinDefinition, GpioDevice device) throws IOException {
         this.pinDefinition = pinDefinition;
         this.device = device;
         device.setup(pinDefinition, GpioDevice.PinUse.INPUT_DIGITAL);
     }
 
+    /**
+     * @return True als pin is high, false otherwise.
+     */
     public boolean isHigh() {
         return device.getBooleanValue(pinDefinition);
     }

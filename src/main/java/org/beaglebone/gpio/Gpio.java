@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * GPIO API for Beaglebone black.
  * @author Koert Zeilstra
  */
 public class Gpio {
@@ -112,6 +113,9 @@ public class Gpio {
 
     private Map<String, PinDefinition> keyToPin = new HashMap<String, PinDefinition>();
 
+    /**
+     * Constructor.
+     */
     public Gpio() {
         for (PinDefinition pinDefinition : PINS) {
             keyToPin.put(pinDefinition.getKey(), pinDefinition);
@@ -129,7 +133,7 @@ public class Gpio {
     public class PinBuilder {
         private PinDefinition pinDefinition;
 
-        public PinBuilder(PinDefinition pinDefinition) {
+        PinBuilder(PinDefinition pinDefinition) {
             this.pinDefinition = pinDefinition;
         }
 
