@@ -1,5 +1,8 @@
+/.gradle
+/.idea
+/build
+gpio.iml
 *.class
-
 # Package Files #
 *.jar
 *.war
