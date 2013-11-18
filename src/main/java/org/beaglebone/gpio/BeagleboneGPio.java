@@ -72,7 +72,6 @@ public class BeagleboneGPio {
     public static PinDefinition P9_29 = new PinDefinition("SPI1_D0", "P9_29", 111, 1, -1);
     public static PinDefinition P9_30 = new PinDefinition("SPI1_D1", "P9_30", 112, -1, -1);
     public static PinDefinition P9_31 = new PinDefinition("SPI1_SCLK", "P9_31", 110, 1, -1);
-    public static PinDefinition P9_32 = new PinDefinition("VDD_ADC", "P9_32", 0, -1, -1);
     public static PinDefinition P9_33 = new PinDefinition("AIN4", "P9_33", 0, -1, 4);
     public static PinDefinition P9_34 = new PinDefinition("GNDA_ADC", "P9_34", 0, -1, -1);
     public static PinDefinition P9_35 = new PinDefinition("AIN6", "P9_35", 0, -1, 6);
