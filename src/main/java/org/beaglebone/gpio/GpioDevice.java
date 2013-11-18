@@ -1,8 +1,6 @@
 package org.beaglebone.gpio;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -109,8 +107,36 @@ public class GpioDevice {
      * @param pinDefinition Pin.
      * @return True if input is high, otherwise false.
      */
-    public boolean getBooleanValue(PinDefinition pinDefinition) {
-        return false;
+    public boolean getBooleanValue(PinDefinition pinDefinition) throws IOException {
+        String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
+        InputStreamReader reader = new InputStreamReader(new FileInputStream(deviceName));
+
+        char[] buffer = new char[1];
+        int length = reader.read(buffer);
+        if (length == 0) {
+            throw new IOException("Failed to read value from device '" + deviceName  + "'");
+        }
+        boolean value = false;
+        if (buffer[1] != '0') {
+            value = true;
+        }
+//        char ch;
+//
+//        if (!fd)
+//        {
+//            if ((fd = open_value_file(gpio)) == -1)
+//                return -1;
+//        }
+//
+//        lseek(fd, 0, SEEK_SET);
+//        read(fd, &ch, sizeof(ch));
+//
+//        if (ch != '0') {
+//            *value = 1;
+//        } else {
+//            *value = 0;
+//        }
+        return value;
     }
 
     /**
@@ -120,9 +146,19 @@ public class GpioDevice {
      * @throws IOException Failed to write to device.
      */
     private void writeToDevice(String device, String text) throws IOException {
-        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(device));
-        writer.write(text);
-        writer.close();
+        OutputStreamWriter writer = null;
+        try {
+            writer = new OutputStreamWriter(new FileOutputStream(device));
+            writer.write(text);
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
     }
 
 }

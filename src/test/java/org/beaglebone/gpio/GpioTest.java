@@ -21,13 +21,13 @@ public class GpioTest {
     @InjectMocks private Gpio gpio;
     @Mock GpioDevice gpioDevice;
 
-    private PinDefinition pinDefinition = new PinDefinition("USR1", "USR1", 54, -1, -1);
+    private PinDefinition pinDefinition = BeagleboneGPio.P8_10;
 
     @Test
     public void pinInput() throws Exception {
         Mockito.when(gpioDevice.getBooleanValue(eq(pinDefinition))).thenReturn(true);
 
-        InputPin pin = gpio.pin("USR1").input();
+        InputPin pin = gpio.pin(BeagleboneGPio.P8_10).input();
         assertThat(pin.isHigh(), is(true));
         Mockito.verify(gpioDevice).setup(eq(pinDefinition), eq(GpioDevice.PinUse.INPUT_DIGITAL));
     }
@@ -36,7 +36,7 @@ public class GpioTest {
     @Test
     public void pinOutput() throws Exception {
 
-        OutputPin pin = gpio.pin("USR1").output();
+        OutputPin pin = gpio.pin(BeagleboneGPio.P8_10).output();
         pin.high();
         Mockito.verify(gpioDevice).setup(eq(pinDefinition), eq(GpioDevice.PinUse.OUTPUT_DIGITAL));
         Mockito.verify(gpioDevice).setValue(eq(pinDefinition), eq(true));

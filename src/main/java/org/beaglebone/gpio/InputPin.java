@@ -23,9 +23,10 @@ public class InputPin {
     }
 
     /**
-     * @return True als pin is high, false otherwise.
+     * @return True if pin is high, false otherwise.
+     * @throws IOException Failed to read/write device.
      */
-    public boolean isHigh() {
+    public boolean isHigh() throws IOException {
         return device.getBooleanValue(pinDefinition);
     }
 }
