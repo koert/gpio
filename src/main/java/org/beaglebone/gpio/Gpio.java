@@ -123,6 +123,7 @@ public class Gpio {
     }
 
     /**
+     * Setup pin.
      * @param name Name of PinDefinition.
      * @return Found pin.
      */
@@ -130,17 +131,43 @@ public class Gpio {
         return new PinBuilder(keyToPin.get(name));
     }
 
+    /**
+     * Setup pin.
+     * @param name Name of PinDefinition.
+     * @return Found pin.
+     */
+    public PinBuilder pin(final PinDefinition pinDefinition) {
+        return new PinBuilder(pinDefinition);
+    }
+
+    /**
+     * Builder for configuring a pin.
+     */
     public class PinBuilder {
         private PinDefinition pinDefinition;
 
+        /**
+         * Constructor.
+         * @param pinDefinition Pin definition.
+         */
         PinBuilder(PinDefinition pinDefinition) {
             this.pinDefinition = pinDefinition;
         }
 
+        /**
+         * Configure pin as input pin.
+         * @return Configured input pin.
+         * @throws IOException Failed to read/write device.
+         */
         public InputPin input() throws IOException {
             return new InputPin(pinDefinition, device);
         }
 
+        /**
+         * Configure pin as output pin.
+         * @return Configured output pin.
+         * @throws IOException Failed to read/write device.
+         */
         public OutputPin output() throws IOException {
             return new OutputPin(pinDefinition, device);
         }

@@ -9,15 +9,15 @@ public class BlinkP912 {
     public static void main(String[] args) {
         Gpio gpio = new Gpio();
         try {
-            OutputPin usr1 = gpio.pin("P9_12").output();
-            System.out.println(usr1);
+            OutputPin pin = gpio.pin(BeagleboneGPio.P9_12).output();
+            System.out.println(pin);
             for (int i=0; i<10; i++) {
-                usr1.low();
+                pin.low();
                 Thread.sleep(1000);
-                usr1.high();
+                pin.high();
                 Thread.sleep(1000);
             }
-            usr1.low();
+            pin.low();
         } catch (Exception e) {
             e.printStackTrace();
         }
