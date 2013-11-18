@@ -57,6 +57,15 @@ public class Gpio {
             return new OutputPin(pinDefinition, device);
         }
 
+        /**
+         * Configure pin as output pin.
+         * @return Configured output pin.
+         * @throws IOException Failed to read/write device.
+         */
+        public OutputPwmPin outputPwm() throws IOException {
+            return new OutputPwmPin(pinDefinition, device);
+        }
+
         @Override
         public String toString() {
             return "PinBuilder{" +

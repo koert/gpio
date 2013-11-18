@@ -16,6 +16,7 @@ public class GpioDevice {
     public enum PinUse {INPUT_DIGITAL, OUTPUT_DIGITAL, OUTPUT_PWM}
 
     private Map<PinDefinition, PinUse> exportedPins = new HashMap<PinDefinition, PinUse>();
+    private File ocpDir;
 
     /**
      * Setup pin before use.
@@ -28,38 +29,22 @@ public class GpioDevice {
         if (exportedPins.containsKey(pinDefinition)) {
             throw new PinConfigurationException("Attempted to reconfigure pin: " + pinDefinition.getName());
         } else {
-//        if ((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
-//        {
-//            return -1;
-//        }
-//        len = snprintf(str_gpio, sizeof(str_gpio), "%d", gpio);
-//        write(fd, str_gpio, len);
-//        close(fd);
-            writeToDevice(DEVICE_EXPORT, Integer.toString(pinDefinition.getGpio()));
-//    snprintf(filename, sizeof(filename), "/sys/class/gpio/gpio%d/direction", gpio);
-//    if ((fd = open(filename, O_WRONLY)) < 0)
-//            return -1;
-//
-//    if (in_flag) {
-//        strncpy(direction, "out", ARRAY_SIZE(direction) - 1);
-//    } else {
-//        strncpy(direction, "in", ARRAY_SIZE(direction) - 1);
-//    }
-//
-//    write(fd, direction, strlen(direction));
-//    close(fd);
-            String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/direction", pinDefinition.getGpio());
-            String text = null;
             switch(pinUse) {
                 case INPUT_DIGITAL:
-                    text = "in";
+            }
+            String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/direction", pinDefinition.getGpio());
+            switch(pinUse) {
+                case INPUT_DIGITAL:
+                    writeToDevice(deviceName, "in");
                     break;
                 case OUTPUT_DIGITAL:
+                    writeToDevice(deviceName, "out");
+                    break;
                 case OUTPUT_PWM:
-                    text = "out";
+                    loadDeviceTree("am33xx_pwm");
+                    ocpDir = findFile(new File("/sys/devices", "ocp"), true);
                     break;
             }
-            writeToDevice(deviceName, text);
             exportedPins.put(pinDefinition, pinUse);
         }
     }
@@ -146,6 +131,7 @@ public class GpioDevice {
      * @throws IOException Failed to write to device.
      */
     private void writeToDevice(String device, String text) throws IOException {
+        System.out.println("writeToDevice: " + device + " - " + text);
         OutputStreamWriter writer = null;
         try {
             writer = new OutputStreamWriter(new FileOutputStream(device));
@@ -161,4 +147,43 @@ public class GpioDevice {
         }
     }
 
+    private void loadDeviceTree(final String name) throws IOException {
+        File capeMgrDir = findFile(new File("/sys/devices"), name, true);
+        File slotsFile = new File(capeMgrDir, "slots");
+        boolean deviceFound = false;
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(slotsFile));
+            while(reader.ready()) {
+                String line = reader.readLine();
+                System.out.println("line: " + line);
+                if (line != null && line.contains(name)) {
+                    deviceFound = true;
+                }
+            }
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+        if (!deviceFound) {
+            writeToDevice(slotsFile.getAbsolutePath(), name);
+        }
+    }
+
+    private File findFile(File directory, String name, boolean required) {
+        File found = null;
+        for(File file : directory.listFiles()) {
+            if (file.getName().contains(name)) {
+                found = file;
+            }
+        }
+        if (required && found == null) {
+            throw new PinConfigurationException(name + " not found " + directory.getAbsolutePath());
+        }
+        return found;
+    }
 }
