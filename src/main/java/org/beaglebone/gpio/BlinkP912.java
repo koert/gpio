@@ -1,7 +1,7 @@
 package org.beaglebone.gpio;
 
 /**
- * Test program that blinks the P9_12 output 10 ten times.
+ * Test program that blinks the P9_12 output ten times.
  * @author Koert Zeilstra
  */
 public class BlinkP912 {
@@ -10,7 +10,6 @@ public class BlinkP912 {
         Gpio gpio = new Gpio();
         try {
             OutputPin pin = gpio.pin(BeagleboneGPio.P9_12).output();
-            System.out.println(pin);
             for (int i=0; i<10; i++) {
                 pin.low();
                 Thread.sleep(1000);
