@@ -168,7 +168,7 @@ public class GpioDevice {
      * @param text Text to write.
      * @throws IOException Failed to write to device.
      */
-    private void writeToDevice(String device, String text) throws IOException {
+    void writeToDevice(String device, String text) throws IOException {
         if (debug) {
             System.out.println("writeToDevice: " + device + " - " + text);
         }
