@@ -1,10 +1,4 @@
-apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: 'idea'
-
-repositories {
-    mavenLocal()
-}
 
 ext.libraries = [
     mockito: ['junit:junit:4.8.1', 'org.mockito:mockito-all:1.9.0'],
@@ -12,10 +6,24 @@ ext.libraries = [
     springTest: "org.springframework:spring-test:3.1.2.RELEASE",
 ]
 
-dependencies {
-    compile "org.springframework:spring-context:3.1.2.RELEASE"
-    testCompile 'junit:junit:4.8.1'
-    testCompile 'org.mockito:mockito-all:1.9.0'
-    testCompile "org.springframework:spring-test:3.1.2.RELEASE"
+allprojects {
+  group = 'gpio'
+
+  apply from: "$rootDir/gradle/versioning.gradle"
+
+  apply plugin: 'maven'
+
+  repositories {
+      mavenCentral()
+  }
 }
+
+task printVersion {
+  group = 'versioning'
+  description = 'Prints project version.'
+  doLast {
+    logger.quiet "Version: $version"
+  }
+}
+
 
