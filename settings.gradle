@@ -1,0 +1,2 @@
+include "gpio-jni", "gpio-api"
+

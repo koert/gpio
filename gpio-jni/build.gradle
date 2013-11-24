@@ -1,0 +1,37 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+task javah (dependsOn: compileJava) {
+    // I guess this can be done a bit neater...
+    String inputClass = "gpio.EpollDescriptor"
+    String inputClassPath = inputClass.replaceAll('\\.', '/')+".class"
+    String outputFile = "src/main/native/gpio_EpollDescriptor.h"
+    inputs.file sourceSets.main.output.asFileTree.matching {
+        include inputClassPath
+    }
+    outputs.file outputFile
+    doLast {
+        ant.javah(class: inputClass, outputFile: outputFile, classpath:sourceSets.main.output.asPath)
+    }
+}
+
+task makeNative(type: Exec, dependsOn: javah) {
+    workingDir 'src/main/native'
+    File libsDirectory = new File("build/libs");
+    if (!libsDirectory.exists()) {
+        libsDirectory.mkdirs();
+    }
+
+    commandLine 'make'
+}
+
+task makeClean(type: Exec) {
+    workingDir 'src/main/native'
+
+    commandLine 'make', 'clean'
+}
+
+// before we can compile javah must have built the header
+//compile.dependsOn javah
+
