@@ -1,11 +1,16 @@
 #include "gpio_Test.h"
-#include "jni.h"
-#include "stdio.h"
+#include <jni.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
 
+/*
+ * Class:     gpio_EpollDescriptor
+ * Method:    createEpFd
+ * Signature: ()I
+ */
 JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_createEpFd(JNIEnv *env, jobject obj) {
-    printf("Java_gpio_EpollDescriptor_createEpFd\n");
     return epoll_create(1);
 }
 
@@ -15,8 +20,6 @@ JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_createEpFd(JNIEnv *env, jobject
  * Signature: (Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_addFile (JNIEnv *env, jobject obj, jint epFd, jstring fileName) {
-    printf("Java_gpio_EpollDescriptor_addFile\n");
-
     const char *nativeFileName = (*env)->GetStringUTFChars(env, fileName, 0);
     int fd;
     struct epoll_event ev;
@@ -36,11 +39,9 @@ JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_addFile (JNIEnv *env, jobject o
 /*
  * Class:     gpio_EpollDescriptor
  * Method:    epollWait
- * Signature: ()V
+ * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_epollWait (JNIEnv *env, jobject obj, jint epFd) {
-    printf("Java_gpio_EpollDescriptor_epollWait\n");
-
     int i;
     int n;
     struct epoll_event events;
@@ -50,4 +51,13 @@ JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_epollWait (JNIEnv *env, jobject
           (*env)->ThrowNew(env, (*env)->FindClass(env, "gpio/WaitException"), "Failed to epoll_wait");
        }
     }
+}
+
+/*
+ * Class:     gpio_EpollDescriptor
+ * Method:    closeEpFd
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_closeEpFd(JNIEnv *env, jobject obj, jint epFd) {
+    close(epFd);
 }
