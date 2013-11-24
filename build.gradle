@@ -25,5 +25,3 @@ task printVersion {
     logger.quiet "Version: $version"
   }
 }
-
-
