@@ -15,7 +15,6 @@ public class EpollDescriptor {
 
     public EpollDescriptor(final String fileName) {
         epFd = createEpFd();
-        System.out.println("epFd: " + epFd);
         fd = addFile(epFd, fileName);
     }
 
