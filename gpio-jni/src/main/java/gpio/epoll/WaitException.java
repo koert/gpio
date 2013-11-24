@@ -1,4 +1,4 @@
-package gpio.gpio.epoll;
+package gpio.epoll;
 
 /**
  * Failed to wait.
