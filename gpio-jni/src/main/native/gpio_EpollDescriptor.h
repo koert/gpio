@@ -18,10 +18,18 @@ JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_createEpFd
 /*
  * Class:     gpio_EpollDescriptor
  * Method:    addFile
- * Signature: (ILjava/lang/String;)V
+ * Signature: (ILjava/lang/String;)I
  */
-JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_addFile
+JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_addFile
   (JNIEnv *, jobject, jint, jstring);
+
+/*
+ * Class:     gpio_EpollDescriptor
+ * Method:    removeFile
+ * Signature: (II)V
+ */
+JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_removeFile
+  (JNIEnv *, jobject, jint, jint);
 
 /*
  * Class:     gpio_EpollDescriptor

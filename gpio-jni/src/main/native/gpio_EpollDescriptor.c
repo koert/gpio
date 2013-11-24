@@ -1,4 +1,4 @@
-#include "gpio_Test.h"
+#include "gpio_EpollDescriptor.h"
 #include <jni.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -17,9 +17,9 @@ JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_createEpFd(JNIEnv *env, jobject
 /*
  * Class:     gpio_EpollDescriptor
  * Method:    addFile
- * Signature: (Ljava/lang/String;)V
+ * Signature: (ILjava/lang/String;)I
  */
-JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_addFile (JNIEnv *env, jobject obj, jint epFd, jstring fileName) {
+JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_addFile (JNIEnv *env, jobject obj, jint epFd, jstring fileName) {
     const char *nativeFileName = (*env)->GetStringUTFChars(env, fileName, 0);
     int fd;
     struct epoll_event ev;
@@ -32,7 +32,20 @@ JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_addFile (JNIEnv *env, jobject o
     ev.events = EPOLLIN | EPOLLET | EPOLLPRI;
     ev.data.fd = fd;
     if (epoll_ctl(epFd, EPOLL_CTL_ADD, fd, &ev) == -1) {
+          (*env)->ThrowNew(env, (*env)->FindClass(env, "gpio/WaitException"), "Failed to epoll_ctl");
+    }
+    return fd;
+}
 
+/*
+ * Class:     gpio_EpollDescriptor
+ * Method:    removeFile
+ * Signature: (II)I
+ */
+JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_removeFile (JNIEnv *env, jobject obj, jint epFd, jint fd) {
+    struct epoll_event ev;
+    if (epoll_ctl(epFd, EPOLL_CTL_DEL, fd, &ev) == -1) {
+          (*env)->ThrowNew(env, (*env)->FindClass(env, "gpio/WaitException"), "Failed to epoll_ctl");
     }
 }
 

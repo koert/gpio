@@ -11,11 +11,12 @@ public class EpollDescriptor {
     }
 
     private int epFd;
+    private int fd;
 
     public EpollDescriptor(final String fileName) {
         epFd = createEpFd();
         System.out.println("epFd: " + epFd);
-        addFile(epFd, fileName);
+        fd = addFile(epFd, fileName);
     }
 
     public void waitForEvent() {
@@ -23,12 +24,15 @@ public class EpollDescriptor {
     }
 
     public void close() {
+        removeFile(epFd, fd);
         closeEpFd(epFd);
     }
 
     private native int createEpFd();
 
-    private native void addFile(final int epFd, final String fileName);
+    private native int addFile(final int epFd, final String fileName);
+
+    private native void removeFile(final int epFd, final int fd);
 
     private native void epollWait(final int epFd);
 
