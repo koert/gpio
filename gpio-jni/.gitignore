@@ -1,8 +1,7 @@
 /.gradle
 /.idea
 /build
-atlassian-ide-plugin.xml
-gpio.iml
+gpio-jni.iml
 *.class
 # Package Files #
 *.jar
