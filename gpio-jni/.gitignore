@@ -3,8 +3,4 @@
 /build
 gpio-jni.iml
 *.class
-# Package Files #
-*.jar
-*.war
-*.ear
-
+*.o

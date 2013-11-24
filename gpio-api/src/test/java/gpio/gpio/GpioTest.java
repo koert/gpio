@@ -1,5 +1,6 @@
-package org.beaglebone.gpio;
+package gpio.gpio;
 
+import gpio.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -19,7 +20,8 @@ import static org.mockito.Matchers.eq;
 public class GpioTest {
 
     @InjectMocks private Gpio gpio;
-    @Mock GpioDevice gpioDevice;
+    @Mock
+    GpioDevice gpioDevice;
 
     private PinDefinition pinDefinition = BeagleboneGPio.P8_10;
 
