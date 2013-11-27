@@ -9,13 +9,19 @@ import gpio.*;
 public class ButtonFade {
 
     public static void main(String[] args) {
+        ButtonFade fade = new ButtonFade();
+        fade.run();
     }
 
+    private Gpio gpio;
     private PwmOutputPin outputPin;
     private Fader fader = new Fader();
 
     public ButtonFade() {
-        Gpio gpio = new Gpio(new BeagleboneGpioFactory());
+        gpio = new Gpio(new BeagleboneGpioFactory());
+    }
+
+    public void run() {
         try {
             outputPin = gpio.pwmOutputPin(BeagleboneGPio.P9_14);
             BinaryInputPin pin = gpio.binaryInputPin(BeagleboneGPio.P9_11);
