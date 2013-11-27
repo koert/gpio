@@ -1,2 +1,2 @@
-include "gpio-jni", "gpio-api"
+include "gpio-jni", "gpio-api", "gpio-example"
 
