@@ -1,4 +1,9 @@
-package gpio;
+package gpio.gpio.beaglebone;
+
+import gpio.BeagleboneGpioDevice;
+import gpio.GpioDevice;
+import gpio.BinaryOutputPin;
+import gpio.PinDefinition;
 
 import java.io.IOException;
 
@@ -6,17 +11,17 @@ import java.io.IOException;
  * Output pin.
  * @author Koert Zeilstra
  */
-public class OutputPin {
+public class BeagleboneBinaryOutputPin implements BinaryOutputPin {
     private PinDefinition pinDefinition;
-    private GpioDevice device;
+    private BeagleboneGpioDevice device;
 
     /**
      * Constructor.
      * @param pinDefinition Pin.
      * @param device Device abstraction.
-     * @throws IOException Failed to read/write device.
+     * @throws java.io.IOException Failed to read/write device.
      */
-    OutputPin(PinDefinition pinDefinition, GpioDevice device) throws IOException {
+    public BeagleboneBinaryOutputPin(PinDefinition pinDefinition, BeagleboneGpioDevice device) throws IOException {
         //To change body of created methods use File | Settings | File Templates.
         this.pinDefinition = pinDefinition;
         this.device = device;
@@ -25,8 +30,9 @@ public class OutputPin {
 
     /**
      * Set pin high.
-     * @throws IOException Failed to read/write device.
+     * @throws java.io.IOException Failed to read/write device.
      */
+    @Override
     public void high() throws IOException {
         device.setValue(pinDefinition, true);
         //To change body of created methods use File | Settings | File Templates.
@@ -34,10 +40,19 @@ public class OutputPin {
 
     /**
      * Set pin low.
-     * @throws IOException Failed to read/write device.
+     * @throws java.io.IOException Failed to read/write device.
      */
+    @Override
     public void low() throws IOException {
         device.setValue(pinDefinition, false);
         //To change body of created methods use File | Settings | File Templates.
+    }
+
+    /**
+     * Stop using this pin.
+     */
+    @Override
+    public void close() throws IOException {
+        device.close(pinDefinition);
     }
 }

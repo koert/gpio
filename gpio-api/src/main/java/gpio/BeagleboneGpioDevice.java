@@ -1,5 +1,8 @@
 package gpio;
 
+import gpio.epoll.EpollDescriptor;
+import gpio.epoll.FileMonitor;
+
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
@@ -10,10 +13,9 @@ import java.util.Map;
  * Device abstraction.
  * @author Koert Zeilstra
  */
-public class GpioDevice {
+public class BeagleboneGpioDevice extends GpioDevice {
 
     public static final String DEVICE_EXPORT = "/sys/class/gpio/export";
-    public static final String DEVICE_UNEXPORT = "/sys/class/gpio/unexport";
 
     public enum PinUse {INPUT_DIGITAL, OUTPUT_DIGITAL, OUTPUT_PWM;}
 
@@ -22,16 +24,12 @@ public class GpioDevice {
     private Map<PinDefinition, PinUse> exportedPins = new HashMap<PinDefinition, PinUse>();
     private File ocpDir;
 
-    public BinaryOutputPin createOutputPin(PinDefinition pinDefinition) {
-        return null;
-    }
-
     /**
      * Setup pin before use.
      * @param pinDefinition Pin to be setup.
      * @param pinUse How to use this pin.
-     * @throws IOException Failed to write to device.
-     * @throws PinConfigurationException Failed to configure pin.
+     * @throws java.io.IOException Failed to write to device.
+     * @throws gpio.PinConfigurationException Failed to configure pin.
      */
     public void setup(PinDefinition pinDefinition, PinUse pinUse) throws IOException, PinConfigurationException {
         if (exportedPins.containsKey(pinDefinition)) {
@@ -59,8 +57,8 @@ public class GpioDevice {
     /**
      * Setup pin before use.
      * @param pinDefinition Pin to be setup.
-     * @throws IOException Failed to write to device.
-     * @throws PinConfigurationException Failed to configure pin.
+     * @throws java.io.IOException Failed to write to device.
+     * @throws gpio.PinConfigurationException Failed to configure pin.
      */
     public void setupPwm(PinDefinition pinDefinition) throws IOException, PinConfigurationException {
         if (exportedPins.containsKey(pinDefinition)) {
@@ -75,14 +73,22 @@ public class GpioDevice {
     /**
      * Setup pin before use.
      * @param pinDefinition Pin to be setup.
-     * @throws IOException Failed to write to device.
-     * @throws PinConfigurationException Failed to configure pin.
+     * @throws java.io.IOException Failed to write to device.
+     * @throws gpio.PinConfigurationException Failed to configure pin.
      */
     public void close(PinDefinition pinDefinition) throws IOException, PinConfigurationException {
         if (!exportedPins.containsKey(pinDefinition)) {
             throw new PinConfigurationException("Attempted to close unconfigured pin: " + pinDefinition.getName());
         } else {
-            unloadDeviceTree(MessageFormat.format("bone_pwm_{0}", pinDefinition.getKey()));
+            PinUse pinUse = exportedPins.get(pinDefinition);
+            switch(pinUse) {
+                case OUTPUT_PWM:
+                    unloadDeviceTree(MessageFormat.format("bone_pwm_{0}", pinDefinition.getKey()));
+                    break;
+                default:
+                    break;
+            }
+            writeToDevice(DEVICE_UNEXPORT, Integer.toString(pinDefinition.getGpio()));
             exportedPins.remove(pinDefinition);
         }
     }
@@ -91,7 +97,7 @@ public class GpioDevice {
      * Set value of output pin.
      * @param pinDefinition Pin.
      * @param value True: high, false: low.
-     * @throws IOException Failed to write to device.
+     * @throws java.io.IOException Failed to write to device.
      */
     public void setValue(PinDefinition pinDefinition, boolean value) throws IOException {
         if (exportedPins.containsKey(pinDefinition)) {
@@ -145,35 +151,28 @@ public class GpioDevice {
     }
 
     /**
-     * @return OCP directory.
+     * Read state of pin.
+     * @param pinDefinition Pin.
+     * @return True if input is high, otherwise false.
      */
-    File getOcpDir() {
-        return ocpDir;
+    public void setEdge(PinDefinition pinDefinition, Edge edge) throws IOException {
+        String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/edge", pinDefinition.getGpio());
+        writeToDevice(deviceName, edge.getCode());
     }
 
     /**
-     * Write text to device.
-     * @param device Full device path.
-     * @param text Text to write.
-     * @throws IOException Failed to write to device.
+     * Create monitor for interrupts on file/device.
+     * @return File/device monitor.
      */
-    public void writeToDevice(String device, String text) throws IOException {
-        if (debug) {
-            System.out.println("writeToDevice: " + device + " - " + text);
-        }
-        OutputStreamWriter writer = null;
-        try {
-            writer = new OutputStreamWriter(new FileOutputStream(device));
-            writer.write(text);
-        } finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-        }
+    public FileMonitor createFileMonitor() {
+        return new EpollDescriptor();
+    }
+
+    /**
+     * @return OCP directory.
+     */
+    public File getOcpDir() {
+        return ocpDir;
     }
 
     private void loadDeviceTree(final String name) throws IOException {
@@ -249,7 +248,7 @@ public class GpioDevice {
         }
     }
 
-    File findFile(File directory, String name, boolean required) {
+    public File findFile(File directory, String name, boolean required) {
         File found = null;
         for(File file : directory.listFiles()) {
             if (file.getName().contains(name)) {

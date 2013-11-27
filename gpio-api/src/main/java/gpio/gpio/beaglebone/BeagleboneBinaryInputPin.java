@@ -1,29 +1,30 @@
-package gpio;
+package gpio.gpio.beaglebone;
 
-import gpio.epoll.EpollDescriptor;
+import gpio.*;
+import gpio.epoll.FileMonitor;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 
 /**
- * Input pin.
+ * Output pin.
  * @author Koert Zeilstra
  */
-public class InputPin {
-
+public class BeagleboneBinaryInputPin implements BinaryInputPin {
     private PinDefinition pinDefinition;
-    private GpioDevice device;
+    private BeagleboneGpioDevice device;
 
     /**
      * Constructor.
      * @param pinDefinition Pin.
      * @param device Device abstraction.
-     * @throws IOException Failed to read/write device.
+     * @throws java.io.IOException Failed to read/write device.
      */
-    InputPin(PinDefinition pinDefinition, GpioDevice device) throws IOException {
+    public BeagleboneBinaryInputPin(PinDefinition pinDefinition, BeagleboneGpioDevice device) throws IOException {
+        //To change body of created methods use File | Settings | File Templates.
         this.pinDefinition = pinDefinition;
         this.device = device;
-        device.setup(pinDefinition, GpioDevice.PinUse.INPUT_DIGITAL);
+        device.setup(pinDefinition, GpioDevice.PinUse.OUTPUT_DIGITAL);
     }
 
     /**
@@ -35,14 +36,21 @@ public class InputPin {
     }
 
     public void waitForEdge(Edge edge) throws IOException {
-        String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/edge", pinDefinition.getGpio());
-        device.writeToDevice(deviceName, edge.getCode());
+        device.setEdge(pinDefinition, edge);
+        FileMonitor fileMonitor = null;
+        try {
+            fileMonitor = device.createFileMonitor();
+            String inputDeviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
+            fileMonitor.addFile(inputDeviceName);
+            fileMonitor.waitForEvent();
+        } finally {
+            fileMonitor.close();
+        }
 
-        String inputDeviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
-        EpollDescriptor epollDescriptor = new EpollDescriptor(inputDeviceName);
-        epollDescriptor.waitForEvent();
-
-        epollDescriptor.close();
+//        EpollDescriptor epollDescriptor = new EpollDescriptor(inputDeviceName);
+//        epollDescriptor.waitForEvent();
+//
+//        epollDescriptor.close();
 
         // http://tutorials.jenkov.com/java-nio/selectors.html
 //        Selector selector = Selector.open();
@@ -77,5 +85,13 @@ public class InputPin {
 //        write(fd, stredge[edge], strlen(stredge[edge]) + 1);
 //        close(fd);
 
+    }
+
+    /**
+     * Stop using this pin.
+     */
+    @Override
+    public void close() throws IOException {
+        device.close(pinDefinition);
     }
 }

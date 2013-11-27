@@ -38,7 +38,7 @@ public class GpioTest {
     @Test
     public void pinOutput() throws Exception {
 
-        OutputPin pin = gpio.pin(BeagleboneGPio.P8_10).output();
+        BinaryOutputPin pin = gpio.pin(BeagleboneGPio.P8_10).output();
         pin.high();
         Mockito.verify(gpioDevice).setup(eq(pinDefinition), eq(GpioDevice.PinUse.OUTPUT_DIGITAL));
         Mockito.verify(gpioDevice).setValue(eq(pinDefinition), eq(true));

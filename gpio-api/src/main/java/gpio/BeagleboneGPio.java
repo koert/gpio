@@ -1,5 +1,8 @@
 package gpio;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Class with Beaglebone specific pin definitions.
  * @author Koert Zeilstra
@@ -83,10 +86,14 @@ public class BeagleboneGPio {
     public static PinDefinition P9_41 = new PinDefinition("CLKOUT2", "P9_41", 20, -1, -1);
     public static PinDefinition P9_42 = new PinDefinition("GPIO0_7", "P9_42", 7, 0, -1);
 
+
+    private Map<PinDefinition, GpioDevice.PinUse> exportedPins = new HashMap<PinDefinition, GpioDevice.PinUse>();
+
     /**
      * Constructor to prevent instantiation.
      */
-    private BeagleboneGPio() {
+    public BeagleboneGPio() {
 
     }
+
 }

@@ -7,9 +7,9 @@ package gpio;
 public class BlinkP912 {
 
     public static void main(String[] args) {
-        Gpio gpio = new Gpio();
+        Gpio gpio = new Gpio(new BeagleboneGpioFactory());
         try {
-            OutputPin pin = gpio.pin(BeagleboneGPio.P9_12).output();
+            BinaryOutputPin pin = gpio.binaryOutputPin(BeagleboneGPio.P9_12);
             for (int i=0; i<10; i++) {
                 pin.low();
                 Thread.sleep(1000);

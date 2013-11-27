@@ -1,4 +1,9 @@
-package gpio;
+package gpio.gpio.beaglebone;
+
+import gpio.BeagleboneGpioDevice;
+import gpio.GpioDevice;
+import gpio.PinDefinition;
+import gpio.PwmOutputPin;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,9 +15,9 @@ import java.math.BigDecimal;
  * Output PWM pin.
  * @author Koert Zeilstra
  */
-public class OutputPwmPin {
+public class BeaglebonePwmOutputPin implements PwmOutputPin {
     private PinDefinition pinDefinition;
-    private GpioDevice device;
+    private BeagleboneGpioDevice device;
     private OutputStreamWriter period;
     private OutputStreamWriter duty;
     private OutputStreamWriter polarity;
@@ -25,7 +30,7 @@ public class OutputPwmPin {
      * @param device Device abstraction.
      * @throws java.io.IOException Failed to read/write device.
      */
-    OutputPwmPin(PinDefinition pinDefinition, GpioDevice device) throws IOException {
+    public BeaglebonePwmOutputPin(PinDefinition pinDefinition, BeagleboneGpioDevice device) throws IOException {
         //To change body of created methods use File | Settings | File Templates.
         this.pinDefinition = pinDefinition;
         this.device = device;
@@ -41,7 +46,8 @@ public class OutputPwmPin {
      * @param frequency Frequency.
      * @throws java.io.IOException Failed to read/write device.
      */
-    public OutputPwmPin frequency(float frequency) throws IOException {
+    @Override
+    public BeaglebonePwmOutputPin frequency(float frequency) throws IOException {
         if (frequency <= 0.0) {
             throw new IllegalArgumentException("frequency must be greater than 0");
         }
@@ -54,7 +60,8 @@ public class OutputPwmPin {
      * @param polarity Polarity.
      * @throws java.io.IOException Failed to read/write device.
      */
-    public OutputPwmPin polarity(boolean polarity) throws IOException {
+    @Override
+    public BeaglebonePwmOutputPin polarity(boolean polarity) throws IOException {
         if (polarity) {
             this.polarity.write("1");
         } else {
@@ -68,7 +75,8 @@ public class OutputPwmPin {
      * @param dutyCycle Duty cycle percentage.
      * @throws java.io.IOException Failed to read/write device.
      */
-    public OutputPwmPin dutyCycle(float dutyCycle) throws IOException {
+    @Override
+    public BeaglebonePwmOutputPin dutyCycle(float dutyCycle) throws IOException {
         if (dutyCycle < 0.0 || dutyCycle > 100.0) {
             new IllegalArgumentException("dutyCycle must have a value from 0.0 to 100.0");
         }
@@ -81,6 +89,7 @@ public class OutputPwmPin {
     /**
      * Stop using this pin.
      */
+    @Override
     public void close() throws IOException {
         try {
             period.close();
@@ -94,6 +103,6 @@ public class OutputPwmPin {
             polarity.close();
         } catch (IOException e) {
         }
-        device.stop(pinDefinition);
+        device.close(pinDefinition);
     }
 }

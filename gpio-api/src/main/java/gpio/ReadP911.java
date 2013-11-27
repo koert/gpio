@@ -9,7 +9,7 @@ public class ReadP911 {
     public static void main(String[] args) {
         Gpio gpio = new Gpio();
         try {
-            InputPin pin = gpio.pin(BeagleboneGPio.P9_11).input();
+            BinaryInputPin pin = gpio.binaryInputPin(BeagleboneGPio.P9_11);
             System.out.println("value: " + pin.isHigh());
             while(true) {
                 System.out.println("value2: " + pin.isHigh());

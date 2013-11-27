@@ -9,6 +9,7 @@ import java.io.IOException;
 public class Gpio {
 
     private GpioDevice device = new GpioDevice();
+    private GpioFactory factory;
 
     /**
      * Constructor.
@@ -17,60 +18,40 @@ public class Gpio {
     }
 
     /**
-     * Setup pin.
-     * @param pinDefinition Defined pin.
-     * @return Pin builder.
+     * Constructor.
      */
-    public PinBuilder pin(final PinDefinition pinDefinition) {
-        return new PinBuilder(pinDefinition);
+    public Gpio(GpioFactory factory) {
+        this.factory = factory;
     }
 
     /**
-     * Builder for configuring a pin.
+     * Setup binary output pin.
+     *
+     * @param pinDefinition Defined pin.
+     * @return Pin builder.
      */
-    public class PinBuilder {
-        private PinDefinition pinDefinition;
-
-        /**
-         * Constructor.
-         * @param pinDefinition Pin definition.
-         */
-        PinBuilder(PinDefinition pinDefinition) {
-            this.pinDefinition = pinDefinition;
-        }
-
-        /**
-         * Configure pin as input pin.
-         * @return Configured input pin.
-         * @throws IOException Failed to read/write device.
-         */
-        public InputPin input() throws IOException {
-            return new InputPin(pinDefinition, device);
-        }
-
-        /**
-         * Configure pin as output pin.
-         * @return Configured output pin.
-         * @throws IOException Failed to read/write device.
-         */
-        public OutputPin output() throws IOException {
-            return new OutputPin(pinDefinition, device);
-        }
-
-        /**
-         * Configure pin as output pin.
-         * @return Configured output pin.
-         * @throws IOException Failed to read/write device.
-         */
-        public OutputPwmPin outputPwm() throws IOException {
-            return new OutputPwmPin(pinDefinition, device);
-        }
-
-        @Override
-        public String toString() {
-            return "PinBuilder{" +
-                    "pinDefinition=" + pinDefinition +
-                    '}';
-        }
+    public BinaryInputPin binaryInputPin(final PinDefinition pinDefinition) throws IOException {
+        return factory.createBinaryInputPin(pinDefinition);
     }
+
+    /**
+     * Setup binary output pin.
+     *
+     * @param pinDefinition Defined pin.
+     * @return Pin builder.
+     */
+    public BinaryOutputPin binaryOutputPin(final PinDefinition pinDefinition) throws IOException {
+        return factory.createBinaryOutputPin(pinDefinition);
+    }
+
+    /**
+     * Setup PWM output pin.
+     *
+     * @param pinDefinition Defined pin.
+     * @return Pin builder.
+     */
+    public PwmOutputPin pwmOutputPin(final PinDefinition pinDefinition) throws IOException {
+        return factory.createPwmOutputPin(pinDefinition);
+    }
+
 }
