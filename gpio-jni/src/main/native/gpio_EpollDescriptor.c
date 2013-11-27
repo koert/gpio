@@ -10,7 +10,7 @@
  * Method:    createEpFd
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_createEpFd(JNIEnv *env, jobject obj) {
+JNIEXPORT jint JNICALL Java_gpio_epoll_EpollDescriptor_createEpFd(JNIEnv *env, jobject obj) {
     return epoll_create(1);
 }
 
@@ -19,7 +19,7 @@ JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_createEpFd(JNIEnv *env, jobject
  * Method:    addFile
  * Signature: (ILjava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_addFile (JNIEnv *env, jobject obj, jint epFd, jstring fileName) {
+JNIEXPORT jint JNICALL Java_gpio_epoll_EpollDescriptor_addFile (JNIEnv *env, jobject obj, jint epFd, jstring fileName) {
     const char *nativeFileName = (*env)->GetStringUTFChars(env, fileName, 0);
     int fd;
     struct epoll_event ev;
@@ -42,7 +42,7 @@ JNIEXPORT jint JNICALL Java_gpio_EpollDescriptor_addFile (JNIEnv *env, jobject o
  * Method:    removeFile
  * Signature: (II)I
  */
-JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_removeFile (JNIEnv *env, jobject obj, jint epFd, jint fd) {
+JNIEXPORT void JNICALL Java_gpio_epoll_EpollDescriptor_removeFile (JNIEnv *env, jobject obj, jint epFd, jint fd) {
     struct epoll_event ev;
     if (epoll_ctl(epFd, EPOLL_CTL_DEL, fd, &ev) == -1) {
           (*env)->ThrowNew(env, (*env)->FindClass(env, "gpio/WaitException"), "Failed to epoll_ctl");
@@ -54,7 +54,7 @@ JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_removeFile (JNIEnv *env, jobjec
  * Method:    epollWait
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_epollWait (JNIEnv *env, jobject obj, jint epFd) {
+JNIEXPORT void JNICALL Java_gpio_epoll_EpollDescriptor_epollWait (JNIEnv *env, jobject obj, jint epFd) {
     int i;
     int n;
     struct epoll_event events;
@@ -71,6 +71,6 @@ JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_epollWait (JNIEnv *env, jobject
  * Method:    closeEpFd
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_gpio_EpollDescriptor_closeEpFd(JNIEnv *env, jobject obj, jint epFd) {
+JNIEXPORT void JNICALL Java_gpio_epoll_EpollDescriptor_closeEpFd(JNIEnv *env, jobject obj, jint epFd) {
     close(epFd);
 }

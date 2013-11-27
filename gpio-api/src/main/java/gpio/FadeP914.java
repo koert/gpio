@@ -7,7 +7,7 @@ package gpio;
 public class FadeP914 {
 
     public static void main(String[] args) {
-        Gpio gpio = new Gpio();
+        Gpio gpio = new Gpio(new BeagleboneGpioFactory());
         try {
             PwmOutputPin pin = gpio.pwmOutputPin(BeagleboneGPio.P9_14);
             for (int i=0; i<10; i++) {

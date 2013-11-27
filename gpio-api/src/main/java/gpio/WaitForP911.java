@@ -7,7 +7,7 @@ package gpio;
 public class WaitForP911 {
 
     public static void main(String[] args) {
-        Gpio gpio = new Gpio();
+        Gpio gpio = new Gpio(new BeagleboneGpioFactory());
         try {
             BinaryInputPin pin = gpio.binaryInputPin(BeagleboneGPio.P9_11);
             System.out.println("value: " + pin.isHigh());

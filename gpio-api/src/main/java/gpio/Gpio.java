@@ -8,7 +8,6 @@ import java.io.IOException;
  */
 public class Gpio {
 
-    private GpioDevice device = new GpioDevice();
     private GpioFactory factory;
 
     /**

@@ -1,16 +1,15 @@
 package gpio.gpio;
 
 import gpio.*;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.eq;
 
 /**
  * Unit test for Gpio.
@@ -19,28 +18,33 @@ import static org.mockito.Matchers.eq;
 @RunWith(MockitoJUnitRunner.class)
 public class GpioTest {
 
-    @InjectMocks private Gpio gpio;
-    @Mock
-    GpioDevice gpioDevice;
+    private Gpio gpio;
+    @Mock private GpioDevice gpioDevice;
+    @Mock private GpioFactory factory;
+    @Mock private BinaryInputPin inputPin;
+    @Mock private BinaryOutputPin outputPin;
 
     private PinDefinition pinDefinition = BeagleboneGPio.P8_10;
 
+    @Before
+    public void setup() {
+        gpio = new Gpio(factory);
+    }
+
     @Test
     public void pinInput() throws Exception {
-        Mockito.when(gpioDevice.getBooleanValue(eq(pinDefinition))).thenReturn(true);
+        Mockito.when(factory.createBinaryInputPin(pinDefinition)).thenReturn(inputPin);
 
-        InputPin pin = gpio.pin(BeagleboneGPio.P8_10).input();
-        assertThat(pin.isHigh(), is(true));
-        Mockito.verify(gpioDevice).setup(eq(pinDefinition), eq(GpioDevice.PinUse.INPUT_DIGITAL));
+        BinaryInputPin pin = gpio.binaryInputPin(BeagleboneGPio.P8_10);
+        assertThat(pin, sameInstance(inputPin));
     }
 
 
     @Test
     public void pinOutput() throws Exception {
+        Mockito.when(factory.createBinaryOutputPin(pinDefinition)).thenReturn(outputPin);
 
-        BinaryOutputPin pin = gpio.pin(BeagleboneGPio.P8_10).output();
-        pin.high();
-        Mockito.verify(gpioDevice).setup(eq(pinDefinition), eq(GpioDevice.PinUse.OUTPUT_DIGITAL));
-        Mockito.verify(gpioDevice).setValue(eq(pinDefinition), eq(true));
+        BinaryOutputPin pin = gpio.binaryOutputPin(BeagleboneGPio.P8_10);
+        assertThat(pin, sameInstance(outputPin));
     }
 }

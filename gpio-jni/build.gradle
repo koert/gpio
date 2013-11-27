@@ -4,7 +4,7 @@ apply plugin: 'idea'
 
 task javah (dependsOn: compileJava) {
     // I guess this can be done a bit neater...
-    String inputClass = "gpio.EpollDescriptor"
+    String inputClass = "gpio.epoll.EpollDescriptor"
     String inputClassPath = inputClass.replaceAll('\\.', '/')+".class"
     String outputFile = "src/main/native/gpio_EpollDescriptor.h"
     inputs.file sourceSets.main.output.asFileTree.matching {

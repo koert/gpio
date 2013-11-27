@@ -1,30 +1,21 @@
 package gpio;
 
+import gpio.epoll.FileMonitor;
+
 import java.io.*;
-import java.nio.channels.FileChannel;
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Device abstraction.
  * @author Koert Zeilstra
  */
-public class GpioDevice {
+public abstract class GpioDevice {
 
     public static final String DEVICE_EXPORT = "/sys/class/gpio/export";
     public static final String DEVICE_UNEXPORT = "/sys/class/gpio/unexport";
 
     public enum PinUse {INPUT_DIGITAL, OUTPUT_DIGITAL, OUTPUT_PWM;}
 
-    private boolean debug = true;
-    private boolean pwmInitialized = false;
-    private Map<PinDefinition, PinUse> exportedPins = new HashMap<PinDefinition, PinUse>();
-    private File ocpDir;
-
-    public BinaryOutputPin createOutputPin(PinDefinition pinDefinition) {
-        return null;
-    }
+    protected boolean debug = true;
 
     /**
      * Setup pin before use.
@@ -33,28 +24,14 @@ public class GpioDevice {
      * @throws IOException Failed to write to device.
      * @throws PinConfigurationException Failed to configure pin.
      */
-    public void setup(PinDefinition pinDefinition, PinUse pinUse) throws IOException, PinConfigurationException {
-        if (exportedPins.containsKey(pinDefinition)) {
-            throw new PinConfigurationException("Attempted to reconfigure pin: " + pinDefinition.getName());
-        } else {
-            String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/direction", pinDefinition.getGpio());
-            switch(pinUse) {
-                case INPUT_DIGITAL:
-                    writeToDevice(DEVICE_EXPORT, Integer.toString(pinDefinition.getGpio()));
-                    writeToDevice(deviceName, "in");
-                    break;
-                case OUTPUT_DIGITAL:
-                    writeToDevice(DEVICE_EXPORT, Integer.toString(pinDefinition.getGpio()));
-                    writeToDevice(deviceName, "out");
-                    break;
-                case OUTPUT_PWM:
-                    initializePwm();
-                    loadDeviceTree(MessageFormat.format("bone_pwm_{0}", pinDefinition.getKey()));
-                    break;
-            }
-            exportedPins.put(pinDefinition, pinUse);
-        }
-    }
+    public abstract void setup(PinDefinition pinDefinition, PinUse pinUse) throws IOException, PinConfigurationException;
+    /**
+     * Setup pin before use.
+     * @param pinDefinition Pin to be setup.
+     * @throws IOException Failed to write to device.
+     * @throws PinConfigurationException Failed to configure pin.
+     */
+    public abstract void setupPwm(PinDefinition pinDefinition) throws IOException, PinConfigurationException;
 
     /**
      * Setup pin before use.
@@ -62,30 +39,7 @@ public class GpioDevice {
      * @throws IOException Failed to write to device.
      * @throws PinConfigurationException Failed to configure pin.
      */
-    public void setupPwm(PinDefinition pinDefinition) throws IOException, PinConfigurationException {
-        if (exportedPins.containsKey(pinDefinition)) {
-            throw new PinConfigurationException("Attempted to reconfigure pin: " + pinDefinition.getName());
-        } else {
-            initializePwm();
-            loadDeviceTree(MessageFormat.format("bone_pwm_{0}", pinDefinition.getKey()));
-            exportedPins.put(pinDefinition, PinUse.OUTPUT_PWM);
-        }
-    }
-
-    /**
-     * Setup pin before use.
-     * @param pinDefinition Pin to be setup.
-     * @throws IOException Failed to write to device.
-     * @throws PinConfigurationException Failed to configure pin.
-     */
-    public void close(PinDefinition pinDefinition) throws IOException, PinConfigurationException {
-        if (!exportedPins.containsKey(pinDefinition)) {
-            throw new PinConfigurationException("Attempted to close unconfigured pin: " + pinDefinition.getName());
-        } else {
-            unloadDeviceTree(MessageFormat.format("bone_pwm_{0}", pinDefinition.getKey()));
-            exportedPins.remove(pinDefinition);
-        }
-    }
+    public abstract void close(PinDefinition pinDefinition) throws IOException, PinConfigurationException;
 
     /**
      * Set value of output pin.
@@ -93,70 +47,27 @@ public class GpioDevice {
      * @param value True: high, false: low.
      * @throws IOException Failed to write to device.
      */
-    public void setValue(PinDefinition pinDefinition, boolean value) throws IOException {
-        if (exportedPins.containsKey(pinDefinition)) {
-            if (exportedPins.get(pinDefinition) == PinUse.OUTPUT_DIGITAL) {
-                String text = null;
-                if (value) {
-                    text = "1";
-                } else {
-                    text = "0";
-                }
-                String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
-                writeToDevice(deviceName, text);
-            } else {
-                throw new PinConfigurationException("Pin is not configured for output: " + pinDefinition.getName());
-            }
-        } else {
-            throw new PinConfigurationException("Pin not configured: " + pinDefinition.getName());
-        }
-    }
+    public abstract void setValue(PinDefinition pinDefinition, boolean value) throws IOException;
 
     /**
      * Read state of pin.
      * @param pinDefinition Pin.
      * @return True if input is high, otherwise false.
      */
-    public boolean getBooleanValue(PinDefinition pinDefinition) throws IOException {
-        String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
-        InputStreamReader reader = new InputStreamReader(new FileInputStream(deviceName));
-
-        char[] buffer = new char[1];
-        int length = reader.read(buffer);
-        if (length == 0) {
-            throw new IOException("Failed to read value from device '" + deviceName  + "'");
-        }
-        boolean value = false;
-        if (buffer[0] != '0') {
-            value = true;
-        }
-        return value;
-    }
+    public abstract boolean getBooleanValue(PinDefinition pinDefinition) throws IOException;
 
     /**
-     * Read state of pin.
-     * @param pinDefinition Pin.
-     * @return True if input is high, otherwise false.
+     * Create monitor for interrupts on file/device.
+     * @return File/device monitor.
      */
-    public FileChannel getChannel(PinDefinition pinDefinition) throws IOException {
-        String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
-        FileInputStream fis = new FileInputStream(deviceName);
-        return fis.getChannel();
-    }
+    public abstract FileMonitor createFileMonitor();
 
-    /**
-     * @return OCP directory.
-     */
-    File getOcpDir() {
-        return ocpDir;
-    }
-
-    /**
-     * Write text to device.
-     * @param device Full device path.
-     * @param text Text to write.
-     * @throws IOException Failed to write to device.
-     */
+        /**
+         * Write text to device.
+         * @param device Full device path.
+         * @param text Text to write.
+         * @throws IOException Failed to write to device.
+         */
     public void writeToDevice(String device, String text) throws IOException {
         if (debug) {
             System.out.println("writeToDevice: " + device + " - " + text);
@@ -260,14 +171,6 @@ public class GpioDevice {
             throw new PinConfigurationException(name + " not found " + directory.getAbsolutePath());
         }
         return found;
-    }
-
-    private void initializePwm() throws IOException {
-        if (!pwmInitialized) {
-            pwmInitialized = true;
-            loadDeviceTree("am33xx_pwm");
-            ocpDir = findFile(new File("/sys/devices"), "ocp", true);
-        }
     }
 
 }

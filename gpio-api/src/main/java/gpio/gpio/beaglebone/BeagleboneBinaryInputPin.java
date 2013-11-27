@@ -24,7 +24,7 @@ public class BeagleboneBinaryInputPin implements BinaryInputPin {
         //To change body of created methods use File | Settings | File Templates.
         this.pinDefinition = pinDefinition;
         this.device = device;
-        device.setup(pinDefinition, GpioDevice.PinUse.OUTPUT_DIGITAL);
+        device.setup(pinDefinition, GpioDevice.PinUse.INPUT_DIGITAL);
     }
 
     /**
@@ -44,7 +44,9 @@ public class BeagleboneBinaryInputPin implements BinaryInputPin {
             fileMonitor.addFile(inputDeviceName);
             fileMonitor.waitForEvent();
         } finally {
-            fileMonitor.close();
+            if (fileMonitor != null) {
+                fileMonitor.close();
+            }
         }
 
 //        EpollDescriptor epollDescriptor = new EpollDescriptor(inputDeviceName);

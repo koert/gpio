@@ -4,7 +4,6 @@ import gpio.epoll.EpollDescriptor;
 import gpio.epoll.FileMonitor;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,11 +14,6 @@ import java.util.Map;
  */
 public class BeagleboneGpioDevice extends GpioDevice {
 
-    public static final String DEVICE_EXPORT = "/sys/class/gpio/export";
-
-    public enum PinUse {INPUT_DIGITAL, OUTPUT_DIGITAL, OUTPUT_PWM;}
-
-    private boolean debug = true;
     private boolean pwmInitialized = false;
     private Map<PinDefinition, PinUse> exportedPins = new HashMap<PinDefinition, PinUse>();
     private File ocpDir;
@@ -31,6 +25,7 @@ public class BeagleboneGpioDevice extends GpioDevice {
      * @throws java.io.IOException Failed to write to device.
      * @throws gpio.PinConfigurationException Failed to configure pin.
      */
+    @Override
     public void setup(PinDefinition pinDefinition, PinUse pinUse) throws IOException, PinConfigurationException {
         if (exportedPins.containsKey(pinDefinition)) {
             throw new PinConfigurationException("Attempted to reconfigure pin: " + pinDefinition.getName());
@@ -60,6 +55,7 @@ public class BeagleboneGpioDevice extends GpioDevice {
      * @throws java.io.IOException Failed to write to device.
      * @throws gpio.PinConfigurationException Failed to configure pin.
      */
+    @Override
     public void setupPwm(PinDefinition pinDefinition) throws IOException, PinConfigurationException {
         if (exportedPins.containsKey(pinDefinition)) {
             throw new PinConfigurationException("Attempted to reconfigure pin: " + pinDefinition.getName());
@@ -76,6 +72,7 @@ public class BeagleboneGpioDevice extends GpioDevice {
      * @throws java.io.IOException Failed to write to device.
      * @throws gpio.PinConfigurationException Failed to configure pin.
      */
+    @Override
     public void close(PinDefinition pinDefinition) throws IOException, PinConfigurationException {
         if (!exportedPins.containsKey(pinDefinition)) {
             throw new PinConfigurationException("Attempted to close unconfigured pin: " + pinDefinition.getName());
@@ -99,6 +96,7 @@ public class BeagleboneGpioDevice extends GpioDevice {
      * @param value True: high, false: low.
      * @throws java.io.IOException Failed to write to device.
      */
+    @Override
     public void setValue(PinDefinition pinDefinition, boolean value) throws IOException {
         if (exportedPins.containsKey(pinDefinition)) {
             if (exportedPins.get(pinDefinition) == PinUse.OUTPUT_DIGITAL) {
@@ -123,6 +121,7 @@ public class BeagleboneGpioDevice extends GpioDevice {
      * @param pinDefinition Pin.
      * @return True if input is high, otherwise false.
      */
+    @Override
     public boolean getBooleanValue(PinDefinition pinDefinition) throws IOException {
         String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
         InputStreamReader reader = new InputStreamReader(new FileInputStream(deviceName));
@@ -139,16 +138,16 @@ public class BeagleboneGpioDevice extends GpioDevice {
         return value;
     }
 
-    /**
-     * Read state of pin.
-     * @param pinDefinition Pin.
-     * @return True if input is high, otherwise false.
-     */
-    public FileChannel getChannel(PinDefinition pinDefinition) throws IOException {
-        String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
-        FileInputStream fis = new FileInputStream(deviceName);
-        return fis.getChannel();
-    }
+//    /**
+//     * Read state of pin.
+//     * @param pinDefinition Pin.
+//     * @return True if input is high, otherwise false.
+//     */
+//    public FileChannel getChannel(PinDefinition pinDefinition) throws IOException {
+//        String deviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
+//        FileInputStream fis = new FileInputStream(deviceName);
+//        return fis.getChannel();
+//    }
 
     /**
      * Read state of pin.
@@ -164,6 +163,7 @@ public class BeagleboneGpioDevice extends GpioDevice {
      * Create monitor for interrupts on file/device.
      * @return File/device monitor.
      */
+    @Override
     public FileMonitor createFileMonitor() {
         return new EpollDescriptor();
     }
