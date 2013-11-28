@@ -82,6 +82,7 @@ public class BeaglebonePwmOutputPin implements PwmOutputPin {
         }
         this.dutyCycle = (long) (this.periodNs * (dutyCycle / 100.0));
         this.duty.write(Long.toString(this.dutyCycle));
+//        System.out.println("dutyCycle " + periodNs + " " + dutyCycle + " " + this.dutyCycle);
         this.duty.flush();
         return this;
     }

@@ -14,7 +14,7 @@ public class FadeP914 {
     public static void main(String[] args) {
         Gpio gpio = new Gpio(new BeagleboneGpioFactory());
         try {
-            PwmOutputPin pin = gpio.pwmOutputPin(BeagleboneGPio.P9_14);
+            PwmOutputPin pin = gpio.pwmOutputPin(BeagleboneGPio.P9_22);
             for (int i=0; i<10; i++) {
                 for (int j=15; j<=1000; j++) {
                     pin.dutyCycle((float) j/10);

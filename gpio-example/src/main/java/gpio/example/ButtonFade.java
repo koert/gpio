@@ -23,7 +23,7 @@ public class ButtonFade {
 
     public void run() {
         try {
-            outputPin = gpio.pwmOutputPin(BeagleboneGPio.P9_14);
+            outputPin = gpio.pwmOutputPin(BeagleboneGPio.P9_16);
             BinaryInputPin pin = gpio.binaryInputPin(BeagleboneGPio.P9_11);
             System.out.println("value: " + pin.isHigh());
             while(true) {
