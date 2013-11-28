@@ -13,8 +13,8 @@ Implemented:
 
 Example for blinking an LED:
 ```java
-Gpio gpio = new Gpio();
-OutputPin pin = gpio.pin(BeagleboneGPio.P9_12).output();
+Gpio gpio = new Gpio(new BeagleboneGpioFactory());
+BinaryOutputPin pin = gpio.binaryOutputPin(BeagleboneGPio.P9_12);
 for (int i=0; i<10; i++) {
     pin.low();
     Thread.sleep(1000);
@@ -26,8 +26,8 @@ pin.low();
 
 Example for reading and waiting for pin value change:
 ```java
-Gpio gpio = new Gpio();
-InputPin pin = gpio.pin(BeagleboneGPio.P9_11).input();
+Gpio gpio = new Gpio(new BeagleboneGpioFactory());
+BinaryInputPin pin = gpio.binaryInputPin(BeagleboneGPio.P9_11);
 System.out.println("value: " + pin.isHigh());
 while(true) {
     pin.waitForEdge(Edge.RISING);
