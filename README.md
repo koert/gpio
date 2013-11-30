@@ -34,3 +34,21 @@ while(true) {
     System.out.println("value2: " + pin.isHigh());
 }
 ```
+
+Example for PWM output:
+```java
+Gpio gpio = new Gpio(new BeagleboneGpioFactory());
+PwmOutputPin pin = gpio.pwmOutputPin(BeagleboneGPio.P9_22);
+for (int i=0; i<10; i++) {
+    for (int j=15; j<=1000; j++) {
+        pin.dutyCycle((float) j/1000);
+        Thread.sleep(1);
+    }
+    for (int j=1000; j>=15; j--) {
+        pin.dutyCycle((float) j/1000);
+        Thread.sleep(1);
+    }
+}
+pin.dutyCycle(0);
+pin.close();
+```

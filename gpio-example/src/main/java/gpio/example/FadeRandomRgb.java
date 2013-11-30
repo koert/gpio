@@ -75,7 +75,7 @@ public class FadeRandomRgb {
             green.dutyCycle(g);
             blue.dutyCycle(b);
             try {
-                Thread.sleep(5);
+                Thread.sleep(2);
             } catch (InterruptedException e) {
             }
         }
