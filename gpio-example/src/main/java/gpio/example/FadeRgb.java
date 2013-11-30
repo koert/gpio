@@ -18,6 +18,9 @@ public class FadeRgb {
     private Color[] colors = {
         new Color(1, 0, 0), new Color(0, 1, 0), new Color(0, 0, 1),
         new Color(1, 1, 0), new Color(0, 1, 1), new Color(1, 0, 1), new Color(0.5F, 0.5F, 0.5F),
+        new Color(0.5F, 1, 0), new Color(0, 0.5F, 1), new Color(1, 0, 0.5F),
+        new Color(0.5F, 1, 1), new Color(1, 0.5F, 1), new Color(1, 1, 0.5F),
+        new Color(0.5F, 1, 0.5F),
         new Color(0, 0, 0)
     };
     private Color black = new Color(0, 0, 0);
