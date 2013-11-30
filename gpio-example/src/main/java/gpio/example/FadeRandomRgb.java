@@ -6,31 +6,27 @@ import gpio.Gpio;
 import gpio.PwmOutputPin;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
- * Test program that fades the P9_14 output ten times.
+ * Test program that fades an RGB LED (P9_14, P9_16, P9_22) with random values.
  * @author Koert Zeilstra
  */
-public class FadeRgb {
+public class FadeRandomRgb {
 
     private Gpio gpio = new Gpio(new BeagleboneGpioFactory());
 
-    private Color[] colors = {
-        new Color(1, 0, 0), new Color(0, 1, 0), new Color(0, 0, 1),
-        new Color(1, 1, 0), new Color(0, 1, 1), new Color(1, 0, 1), new Color(0.5F, 0.5F, 0.5F),
-        new Color(0, 0, 0)
-    };
-    private Color black = new Color(0, 0, 0);
-    private Color white = new Color(1, 1, 1);
+    private Color black = new Color((short) 0, (short) 0, (short) 0);
+    private Color white = new Color(Short.MAX_VALUE, Short.MAX_VALUE, Short.MAX_VALUE);
 
     private PwmOutputPin red = gpio.pwmOutputPin(BeagleboneGPio.P9_14);
     private PwmOutputPin green = gpio.pwmOutputPin(BeagleboneGPio.P9_16);
     private PwmOutputPin blue = gpio.pwmOutputPin(BeagleboneGPio.P9_22);
 
     public static void main(String[] args) {
-        FadeRgb fade = null;
+        FadeRandomRgb fade = null;
         try {
-            fade = new FadeRgb();
+            fade = new FadeRandomRgb();
             fade.fade();
         } catch (Exception e) {
             e.printStackTrace();
@@ -44,29 +40,19 @@ public class FadeRgb {
         }
     }
 
-    public FadeRgb() throws IOException {
+    public FadeRandomRgb() throws IOException {
     }
 
     public void fade() throws IOException {
 
+        Random random = new Random();
         Color currentColor = black;
-        for (Color color : colors) {
+        while (true) {
+            Color color = new Color(getRandomShort(random), getRandomShort(random), getRandomShort(random));
+            System.out.printf("-> %9d %9d %9d        \n", color.red, color.green, color.blue);
             fade(currentColor, color);
             currentColor = color;
         }
-
-//        for (int i=0; i<10; i++) {
-//            for (int j=15; j<=1000; j++) {
-//                pin.dutyCycle((float) j/10);
-//                Thread.sleep(1);
-//            }
-//            for (int j=1000; j>=15; j--) {
-//                pin.dutyCycle((float) j/10);
-//                Thread.sleep(1);
-//            }
-//        }
-//        pin.dutyCycle(0);
-//        pin.close();
     }
 
     public void close() throws IOException {
@@ -75,28 +61,32 @@ public class FadeRgb {
         blue.close();
     }
 
+    private short getRandomShort(Random random) {
+        return (short) (Math.abs(random.nextInt()) % Short.MAX_VALUE);
+    }
+
     private void fade(Color from, Color to) throws IOException {
         for (int i = 0; i <= 1000; i++) {
-            float r = from.red  + i * (to.red - from.red) / 1000;
-            float g = from.green + i * (to.green - from.green) / 1000;
-            float b = from.blue + i * (to.blue - from.blue) / 1000;
-            System.out.printf("rgb %1.3f  %1.3f  %1.3f\r", r, g, b);
+            short r = (short) (from.red  + i * (to.red - from.red) / 1000);
+            short g = (short) (from.green + i * (to.green - from.green) / 1000);
+            short b = (short) (from.blue + i * (to.blue - from.blue) / 1000);
+            System.out.printf("rgb %9d  %9d  %9d  \r", r, g, b);
             red.dutyCycle(r);
             green.dutyCycle(g);
             blue.dutyCycle(b);
             try {
-                Thread.sleep(10);
+                Thread.sleep(5);
             } catch (InterruptedException e) {
             }
         }
     }
 
     public class Color {
-        public float red;
-        public float green;
-        public float blue;
+        public short red;
+        public short green;
+        public short blue;
 
-        public Color(float red, float green, float blue) {
+        public Color(short red, short green, short blue) {
             this.red = red;
             this.green = green;
             this.blue = blue;

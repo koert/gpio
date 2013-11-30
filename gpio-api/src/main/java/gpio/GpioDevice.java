@@ -15,7 +15,7 @@ public abstract class GpioDevice {
 
     public enum PinUse {INPUT_DIGITAL, OUTPUT_DIGITAL, OUTPUT_PWM;}
 
-    protected boolean debug = true;
+    protected boolean debug = false;
 
     /**
      * Setup pin before use.

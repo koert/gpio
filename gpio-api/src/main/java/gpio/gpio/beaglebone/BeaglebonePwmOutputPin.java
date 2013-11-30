@@ -72,15 +72,31 @@ public class BeaglebonePwmOutputPin implements PwmOutputPin {
     }
 
     /**
-     * @param dutyCycle Duty cycle percentage.
+     * @param dutyCycle Duty cycle, minimum value is 0, maxiumum value is 1.
      * @throws java.io.IOException Failed to read/write device.
      */
     @Override
     public BeaglebonePwmOutputPin dutyCycle(float dutyCycle) throws IOException {
-        if (dutyCycle < 0.0 || dutyCycle > 100.0) {
-            new IllegalArgumentException("dutyCycle must have a value from 0.0 to 100.0");
+        if (dutyCycle < 0.0 || dutyCycle > 1.0) {
+            new IllegalArgumentException("dutyCycle must have a value from 0.0 to 1.0");
         }
-        this.dutyCycle = (long) (this.periodNs * (dutyCycle / 100.0));
+        this.dutyCycle = (long) (this.periodNs * dutyCycle);
+        this.duty.write(Long.toString(this.dutyCycle));
+//        System.out.println("dutyCycle " + periodNs + " " + dutyCycle + " " + this.dutyCycle);
+        this.duty.flush();
+        return this;
+    }
+
+    /**
+     * @param dutyCycle Duty cycle, minimum value is 0, maxiumum value is Short.MAX_VALUE.
+     * @throws java.io.IOException Failed to read/write device.
+     */
+    @Override
+    public BeaglebonePwmOutputPin dutyCycle(short dutyCycle) throws IOException {
+        if (dutyCycle < 0) {
+            new IllegalArgumentException("dutyCycle must have a value from 0 to (including) Short.MAX_VALUE");
+        }
+        this.dutyCycle = (long) (this.periodNs * dutyCycle / Short.MAX_VALUE);
         this.duty.write(Long.toString(this.dutyCycle));
 //        System.out.println("dutyCycle " + periodNs + " " + dutyCycle + " " + this.dutyCycle);
         this.duty.flush();

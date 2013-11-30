@@ -21,10 +21,16 @@ public interface PwmOutputPin {
     PwmOutputPin polarity(boolean polarity) throws IOException;
 
     /**
-     * @param dutyCycle Duty cycle percentage.
+     * @param dutyCycle Duty cycle, minimum value is 0, maxiumum value is 1.
      * @throws java.io.IOException Failed to read/write device.
      */
     PwmOutputPin dutyCycle(float dutyCycle) throws IOException;
+
+    /**
+     * @param dutyCycle Duty cycle, minimum value is 0, maxiumum value is Short.MAX_VALUE.
+     * @throws java.io.IOException Failed to read/write device.
+     */
+    PwmOutputPin dutyCycle(short dutyCycle) throws IOException;
 
     /**
      * Stop using this pin.
