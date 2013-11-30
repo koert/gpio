@@ -34,10 +34,10 @@ JNIEXPORT void JNICALL Java_gpio_epoll_EpollDescriptor_removeFile
 /*
  * Class:     gpio_epoll_EpollDescriptor
  * Method:    epollWait
- * Signature: (I)V
+ * Signature: (II)I
  */
-JNIEXPORT void JNICALL Java_gpio_epoll_EpollDescriptor_epollWait
-  (JNIEnv *, jobject, jint);
+JNIEXPORT jint JNICALL Java_gpio_epoll_EpollDescriptor_epollWait
+  (JNIEnv *, jobject, jint, jint);
 
 /*
  * Class:     gpio_epoll_EpollDescriptor

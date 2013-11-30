@@ -46,8 +46,16 @@ public class EpollDescriptor implements FileMonitor {
      * Wait for event on files.
      */
     @Override
-    public void waitForEvent() {
-        epollWait(epFd);
+    public int waitForEvent() {
+        return waitForEvent(-1);
+    }
+
+    /**
+     * Wait for event on files.
+     */
+    @Override
+    public int waitForEvent(int timeout) {
+        return epollWait(epFd, timeout);
     }
 
     /**
@@ -67,7 +75,7 @@ public class EpollDescriptor implements FileMonitor {
 
     private native void removeFile(final int epFd, final int fd);
 
-    private native void epollWait(final int epFd);
+    private native int epollWait(final int epFd, int timeout);
 
     private native void closeEpFd(final int epFd);
 

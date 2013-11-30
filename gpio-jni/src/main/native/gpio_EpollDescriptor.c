@@ -50,20 +50,21 @@ JNIEXPORT void JNICALL Java_gpio_epoll_EpollDescriptor_removeFile (JNIEnv *env, 
 }
 
 /*
- * Class:     gpio_EpollDescriptor
+ * Class:     gpio_epoll_EpollDescriptor
  * Method:    epollWait
- * Signature: (I)V
+ * Signature: (II)I
  */
-JNIEXPORT void JNICALL Java_gpio_epoll_EpollDescriptor_epollWait (JNIEnv *env, jobject obj, jint epFd) {
+JNIEXPORT jint JNICALL Java_gpio_epoll_EpollDescriptor_epollWait (JNIEnv *env, jobject obj, jint epFd, jint timeout) {
     int i;
     int n;
     struct epoll_event events;
 
     for (i = 0; i<2; i++) { // first time triggers with current state, so ignore
-       if ((n = epoll_wait(epFd, &events, 1, -1)) == -1) {
+       if ((n = epoll_wait(epFd, &events, 1, timeout)) == -1) {
           (*env)->ThrowNew(env, (*env)->FindClass(env, "gpio/WaitException"), "Failed to epoll_wait");
        }
     }
+    return n;
 }
 
 /*

@@ -15,7 +15,13 @@ public interface FileMonitor {
     /**
      * Wait for event on files.
      */
-    void waitForEvent();
+    int waitForEvent();
+
+    /**
+     * Wait for event on files.
+     * @param timeout Timeout in milliseconds.
+     */
+    int waitForEvent(int timeout);
 
     /**
      * Close descriptor.

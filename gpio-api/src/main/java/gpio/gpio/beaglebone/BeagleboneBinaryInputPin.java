@@ -3,7 +3,9 @@ package gpio.gpio.beaglebone;
 import gpio.*;
 import gpio.epoll.FileMonitor;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
 
 /**
@@ -13,6 +15,8 @@ import java.text.MessageFormat;
 public class BeagleboneBinaryInputPin implements BinaryInputPin {
     private PinDefinition pinDefinition;
     private BeagleboneGpioDevice device;
+    private FileInputStream reader;
+    private FileChannel channel;
 
     /**
      * Constructor.
@@ -25,16 +29,30 @@ public class BeagleboneBinaryInputPin implements BinaryInputPin {
         this.pinDefinition = pinDefinition;
         this.device = device;
         device.setup(pinDefinition, GpioDevice.PinUse.INPUT_DIGITAL);
+        reader = new FileInputStream(getInputDeviceName());
+        channel = reader.getChannel();
     }
 
     /**
      * @return True if pin is high, false otherwise.
      * @throws IOException Failed to read/write device.
      */
+    @Override
     public boolean isHigh() throws IOException {
-        return device.getBooleanValue(pinDefinition);
+        byte[] buffer = new byte[10];
+        channel.position(0);
+        int length = reader.read(buffer);
+        if (length == 0) {
+            throw new IOException("Failed to read value from device '" + getInputDeviceName()  + "'");
+        }
+        boolean value = false;
+        if (buffer[0] != '0') {
+            value = true;
+        }
+        return value;
     }
 
+    @Override
     public void waitForEdge(Edge edge) throws IOException {
         device.setEdge(pinDefinition, edge);
         FileMonitor fileMonitor = null;
@@ -48,45 +66,17 @@ public class BeagleboneBinaryInputPin implements BinaryInputPin {
                 fileMonitor.close();
             }
         }
+    }
 
-//        EpollDescriptor epollDescriptor = new EpollDescriptor(inputDeviceName);
-//        epollDescriptor.waitForEvent();
-//
-//        epollDescriptor.close();
-
-        // http://tutorials.jenkov.com/java-nio/selectors.html
-//        Selector selector = Selector.open();
-//        channel.configureBlocking(false);
-//        SelectionKey key = channel.register(selector, SelectionKey.OP_READ);
-//        while(true) {
-//            int readyChannels = selector.select();
-//            if(readyChannels == 0) continue;
-//            Set<SelectionKey> selectedKeys = selector.selectedKeys();
-//            Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
-//            while(keyIterator.hasNext()) {
-//                SelectionKey key = keyIterator.next();
-//                if(key.isAcceptable()) {
-//                    // a connection was accepted by a ServerSocketChannel.
-//                } else if (key.isConnectable()) {
-//                    // a connection was established with a remote server.
-//                } else if (key.isReadable()) {
-//                    // a channel is ready for reading
-//                } else if (key.isWritable()) {
-//                    // a channel is ready for writing
-//                }
-//                keyIterator.remove();
-//            }
-//        }
-
-
-//        snprintf(filename, sizeof(filename), "/sys/class/gpio/gpio%d/edge", gpio);
-//
-//        if ((fd = open(filename, O_WRONLY)) < 0)
-//            return -1;
-//
-//        write(fd, stredge[edge], strlen(stredge[edge]) + 1);
-//        close(fd);
-
+    @Override
+    public InputPinChangeMonitor monitorChange(Edge edge) throws IOException {
+        device.setEdge(pinDefinition, edge);
+        InputPinChangeMonitor inputMonitor = null;
+        FileMonitor fileMonitor = device.createFileMonitor();
+        String inputDeviceName = MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
+        fileMonitor.addFile(inputDeviceName);
+        inputMonitor = new InputPinChangeMonitor(fileMonitor);
+        return inputMonitor;
     }
 
     /**
@@ -94,6 +84,13 @@ public class BeagleboneBinaryInputPin implements BinaryInputPin {
      */
     @Override
     public void close() throws IOException {
+        reader.close();
         device.close(pinDefinition);
+
     }
+
+    private String getInputDeviceName() {
+        return MessageFormat.format("/sys/class/gpio/gpio{0}/value", pinDefinition.getGpio());
+    }
+
 }
