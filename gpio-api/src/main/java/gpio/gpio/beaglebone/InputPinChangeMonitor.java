@@ -16,6 +16,10 @@ public class InputPinChangeMonitor {
         fileMonitor.waitForEvent();
     }
 
+    public int waitForEvent(int timeout) {
+        return fileMonitor.waitForEvent(timeout);
+    }
+
     public void close() {
         fileMonitor.close();
     }
