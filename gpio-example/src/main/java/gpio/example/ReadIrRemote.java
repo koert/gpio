@@ -2,7 +2,7 @@ package gpio.example;
 
 import gpio.*;
 import gpio.gpio.beaglebone.InputPinChangeMonitor;
-import gpio.gpio.beaglebone.IrRemoteInput;
+import gpio.gpio.beaglebone.IrReceiverInput;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -162,7 +162,7 @@ public class ReadIrRemote {
 
     public void read6() throws IOException {
         System.out.println("value: " + pin.isHigh());
-        IrRemoteInput irRemoteInput = new IrRemoteInput(pin, 100000, 200);
+        IrReceiverInput irRemoteInput = new IrReceiverInput(pin, 576554, 200);
 
         while(true) {
             String sequence = irRemoteInput.readSequence();

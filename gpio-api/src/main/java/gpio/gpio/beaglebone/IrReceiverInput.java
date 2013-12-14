@@ -8,17 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Input reader for IR remote receiver.
  * @author Koert Zeilstra
  */
-public class IrRemoteInput {
+public class IrReceiverInput {
 
     private InputPinChangeMonitor changeMonitor;
     private long resolutionNs;
+    private long margin;
     private int sequenceTimeoutMs;
 
-    public IrRemoteInput(BinaryInputPin pin, long resolutionNs, int sequenceTimeoutMs) throws IOException {
+    public IrReceiverInput(BinaryInputPin pin, long resolutionNs, int sequenceTimeoutMs) throws IOException {
         this.resolutionNs = resolutionNs;
         this.sequenceTimeoutMs = sequenceTimeoutMs;
+        this.margin = resolutionNs / 2;
         changeMonitor= pin.monitorChange(Edge.BOTH);
     }
 
@@ -47,7 +50,7 @@ public class IrRemoteInput {
 //        System.out.print("* ");
         StringBuilder builder = new StringBuilder("* ");
         for (Long t : times) {
-            long x = ((t + resolutionNs) / resolutionNs) / 5;
+            long x = (t + margin) / resolutionNs;
             builder.append(x).append(".");
         }
         return builder.toString();
