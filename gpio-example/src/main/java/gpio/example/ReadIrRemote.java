@@ -170,6 +170,21 @@ public class ReadIrRemote {
         }
     }
 
+    public void read7() throws IOException {
+        String key1 = "* 16.8.1.1.1.1.1.1.1.1.1.3.1.1.1.3.1.1.1.3.1.3.1.3.1.3.1.1.1.3.1.1.1.3.1.1.1.1.1.1.1.3.1.3.1.1.1.1.1.1.1.3.1.3.1.3.1.1.1.1.1.3.1.3.1.3.1.69.16.4.1.";
+
+        System.out.println("value: " + pin.isHigh());
+        IrReceiverInput irRemoteInput = new IrReceiverInput(pin, 575296, 200);
+
+        while(true) {
+            String sequence = irRemoteInput.readSequence();
+            System.out.println(sequence);
+            if (key1.equals(sequence)) {
+                System.out.println("*** Key 1");
+            }
+        }
+    }
+
     public List<Long> readSequence(InputPinChangeMonitor changeMonitor) throws IOException {
         List<Long> times = new ArrayList<Long>();
         changeMonitor.waitForEvent(-1);
@@ -262,7 +277,7 @@ public class ReadIrRemote {
 
         try {
             ReadIrRemote readIrRemote = new ReadIrRemote();
-            readIrRemote.read6();
+            readIrRemote.read7();
         } catch (Exception e) {
             e.printStackTrace();
         }
