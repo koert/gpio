@@ -22,9 +22,9 @@ for (int i=0; i<10; i++) {
 }
 pin.low();
 
+=== Blinking LED
 Example for reading and waiting for pin value change:
 [source,java]
----
 Gpio gpio = new Gpio(new BeagleboneGpioFactory());
 BinaryInputPin pin = gpio.binaryInputPin(BeagleboneGPio.P9_11);
 System.out.println("value: " + pin.isHigh());
@@ -32,11 +32,10 @@ while(true) {
     pin.waitForEdge(Edge.RISING);
     System.out.println("value2: " + pin.isHigh());
 }
----
 
+=== PWM
 Example for PWM output:
 [source,java]
----
 Gpio gpio = new Gpio(new BeagleboneGpioFactory());
 PwmOutputPin pin = gpio.pwmOutputPin(BeagleboneGPio.P9_22);
 for (int i=0; i<10; i++) {
@@ -51,5 +50,4 @@ for (int i=0; i<10; i++) {
 }
 pin.dutyCycle(0);
 pin.close();
----
 
