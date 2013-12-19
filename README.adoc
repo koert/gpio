@@ -6,6 +6,7 @@ This is a work-in-progress with the intention of implementing the API in Java wi
 for pin interrupt handling).
 
 Implemented:
+
 * Digital out
 * PWM out
 * Digital in - read value
