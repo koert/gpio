@@ -4,18 +4,21 @@ import gpio.BinaryInputPin;
 import gpio.gpio.beaglebone.IrReceiverInput;
 
 import java.io.IOException;
-import java.util.Queue;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * @author Koert Zeilstra
  */
 public class IrInputThread extends Thread {
 
-    private Queue<IrInput> inputQueue;
+    private BlockingQueue<Command> commandQueue;
     private BinaryInputPin pin;
+    private Map<IrInput, Command> inputCommands;
 
-    public IrInputThread(Queue<IrInput> inputQueue, BinaryInputPin pin) {
-        this.inputQueue = inputQueue;
+    public IrInputThread(BlockingQueue<Command> commandQueue, BinaryInputPin pin,
+                         Map<IrInput, Command> inputCommands) {
+        this.commandQueue = commandQueue;
         this.pin = pin;
     }
 
@@ -30,7 +33,9 @@ public class IrInputThread extends Thread {
                 IrInput irInput = IrInput.valueOfSequence(sequence);
                 if (irInput != null) {
                     System.out.println("irInput " + irInput.name());
-                    inputQueue.offer(irInput);
+                    if (inputCommands.containsKey(irInput)) {
+                        commandQueue.offer(inputCommands.get(irInput));
+                    }
                 }
             }
         } catch (IOException e) {

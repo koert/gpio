@@ -3,8 +3,12 @@ package gpio.example.fader;
 import gpio.BeagleboneGPio;
 import gpio.BeagleboneGpioFactory;
 import gpio.Gpio;
+import gpio.PwmOutputPin;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -16,7 +20,11 @@ public class FadeRgbIrRemote {
 
     private Gpio gpio = new Gpio(new BeagleboneGpioFactory());
     private BlockingQueue<IrInput> inputQueue = new LinkedBlockingQueue<IrInput>();
+    private BlockingQueue<Command> commandQueue = new LinkedBlockingQueue<Command>();
     private IrInputThread irInputThread;
+    private Map<IrInput, Command> inputCommands = new HashMap<IrInput, Command>();
+    private PirSensorInputThread pirSensorInputThread;
+    private Thread currentCommandThread;
 
     private Color[] colors0 = {
         new Color(1, 0, 0), new Color(0, 1, 0), new Color(0, 0, 1)
@@ -34,6 +42,8 @@ public class FadeRgbIrRemote {
 
     private RgbLed rgbLed;
     private FaderThread faderThread;
+    private Timer timer = new Timer(true);
+    private PwmOutputPin pwmOutputPin;
 
     public static void main(String[] args) {
         FadeRgbIrRemote app = null;
@@ -53,7 +63,13 @@ public class FadeRgbIrRemote {
     }
 
     public FadeRgbIrRemote() throws IOException {
-        irInputThread = new IrInputThread(inputQueue, gpio.binaryInputPin(BeagleboneGPio.P9_11));
+        inputCommands.put(IrInput.KEY_1, new IrKey1());
+        inputCommands.put(IrInput.KEY_2, new IrKey2());
+        irInputThread = new IrInputThread(commandQueue, gpio.binaryInputPin(BeagleboneGPio.P9_11), inputCommands);
+        pirSensorInputThread = new PirSensorInputThread(commandQueue, gpio.binaryInputPin(BeagleboneGPio.P9_13),
+                new MotionDetected());
+        pwmOutputPin = gpio.pwmOutputPin(BeagleboneGPio.P9_21);
+        pwmOutputPin.dutyCycle(0.0F);
         rgbLed = new RgbLed(gpio.pwmOutputPin(BeagleboneGPio.P9_14),
                 gpio.pwmOutputPin(BeagleboneGPio.P9_16),
                 gpio.pwmOutputPin(BeagleboneGPio.P9_22));
@@ -61,38 +77,71 @@ public class FadeRgbIrRemote {
 
     public void start() throws IOException {
         faderThread = new FaderThread(rgbLed, colors);
-        faderThread.start();
+        // faderThread.start();
         irInputThread.setDaemon(true);
         irInputThread.start();
+        pirSensorInputThread.setDaemon(true);
+        pirSensorInputThread.start();
         boolean running = true;
         while (running) {
-            IrInput input = null;
-            try {
-                input = inputQueue.take();
-            } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-            switch (input) {
-                case KEY_1:
-                    try {
-                        faderThread.interrupt();
-                        faderThread.join();
-                    } catch (InterruptedException e) {
-                    }
-                    faderThread = new FaderThread(rgbLed, colors0);
-                    faderThread.run();
-                    break;
-                case KEY_2:
-                    try {
-                        faderThread.interrupt();
-                        faderThread.join();
-                    } catch (InterruptedException e) {
-                    }
-                    rgbLed.fadeTo(Color.black, 10);
-                    running = false;
-                    break;
-            }
+            running = takeFromCommandQueue();
+//            running = takeFromIrInput();
         }
+    }
+
+    private boolean takeFromCommandQueue() throws IOException {
+        boolean running = true;
+        Command command = null;
+        try {
+            command = commandQueue.take();
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        if (command != null) {
+            if (currentCommandThread != null) {
+                currentCommandThread.interrupt();
+                try {
+                    currentCommandThread.join(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            currentCommandThread = new Thread(command);
+            currentCommandThread.run();
+        }
+        return running;
+    }
+
+    private boolean takeFromIrInput() throws IOException {
+        boolean running = true;
+        IrInput input = null;
+        try {
+            input = inputQueue.take();
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        switch (input) {
+            case KEY_1:
+                try {
+                    faderThread.interrupt();
+                    faderThread.join();
+                } catch (InterruptedException e) {
+                }
+                faderThread = new FaderThread(rgbLed, colors0);
+                faderThread.run();
+                break;
+            case KEY_2:
+                try {
+                    faderThread.interrupt();
+                    faderThread.join();
+                } catch (InterruptedException e) {
+                }
+                rgbLed.fadeTo(Color.black, 10);
+                running = false;
+                break;
+        }
+        return running;
     }
 
     public void fade() throws IOException {
@@ -135,4 +184,43 @@ public class FadeRgbIrRemote {
 //            }
 //        }
 //    }
+
+    private class MotionDetected extends Command {
+        @Override
+        public void run() {
+            System.out.println("MotionDetectedStart on");
+            try {
+                for(int i=0; isRunning() && i<=100; i++) {
+                    pwmOutputPin.dutyCycle((float) i / 100);
+                    Thread.sleep(10);
+                }
+                Thread.sleep(10000);
+                for(int i=100; isRunning() && i>=0; i--) {
+                    pwmOutputPin.dutyCycle((float) i / 100);
+                    Thread.sleep(10);
+                }
+                System.out.println("MotionDetectedStart off");
+                pwmOutputPin.dutyCycle(0.0F);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class IrKey1 extends Command {
+        @Override
+        public void run() {
+            System.out.println("IrKey1");
+        }
+    }
+
+    private class IrKey2 extends Command {
+        @Override
+        public void run() {
+            System.out.println("IrKey2");
+        }
+    }
+
 }
