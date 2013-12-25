@@ -39,6 +39,7 @@ public class FadeRgbIrRemote {
     };
     private Color black = new Color(0, 0, 0);
     private Color white = new Color(1, 1, 1);
+    private Color whiteLow = new Color(0.3F, 0.1F, 0.1F);
 
     private RgbLed rgbLed;
     private FaderThread faderThread;
@@ -99,6 +100,7 @@ public class FadeRgbIrRemote {
         }
         if (command != null) {
             if (currentCommandThread != null) {
+                System.out.println("interrupt");
                 currentCommandThread.interrupt();
                 try {
                     currentCommandThread.join(1000);
@@ -137,7 +139,7 @@ public class FadeRgbIrRemote {
                     faderThread.join();
                 } catch (InterruptedException e) {
                 }
-                rgbLed.fadeTo(Color.black, 10);
+                rgbLed.fadeTo(Color.black, 1000, 10);
                 running = false;
                 break;
         }
@@ -189,18 +191,32 @@ public class FadeRgbIrRemote {
         @Override
         public void run() {
             System.out.println("MotionDetectedStart on");
+            Running running = new Running() {
+                private boolean interrupted = false;
+                @Override public boolean isRunning() {
+                    interrupted = Thread.currentThread().isInterrupted();
+                    if (interrupted) {
+                        System.out.println("isRunning: " + interrupted);
+                    }
+                    return !interrupted;
+                }
+            };
             try {
-                for(int i=0; isRunning() && i<=100; i++) {
-                    pwmOutputPin.dutyCycle((float) i / 100);
-                    Thread.sleep(10);
+                rgbLed.fadeTo(whiteLow, 1, running);
+//                for(int i=0; isRunning() && i<=100; i++) {
+//                    pwmOutputPin.dutyCycle((float) i / 100);
+//                    Thread.sleep(10);
+//                }
+                if (running.isRunning()) {
+                    Thread.sleep(10000);
                 }
-                Thread.sleep(10000);
-                for(int i=100; isRunning() && i>=0; i--) {
-                    pwmOutputPin.dutyCycle((float) i / 100);
-                    Thread.sleep(10);
-                }
+//                for(int i=100; isRunning() && i>=0; i--) {
+//                    pwmOutputPin.dutyCycle((float) i / 100);
+//                    Thread.sleep(10);
+//                }
                 System.out.println("MotionDetectedStart off");
-                pwmOutputPin.dutyCycle(0.0F);
+//                pwmOutputPin.dutyCycle(0.0F);
+                rgbLed.fadeTo(black, 1, running);
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {

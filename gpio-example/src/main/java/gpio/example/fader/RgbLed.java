@@ -12,7 +12,9 @@ public class RgbLed {
     private PwmOutputPin green;
     private PwmOutputPin blue;
 
-    private Color currentColor = new Color(0, 0, 0);
+    private short currentRed = 0;
+    private short currentGreen = 0;
+    private short currentBlue = 0;
 
     public RgbLed(PwmOutputPin red, PwmOutputPin green, PwmOutputPin blue) {
         this.red = red;
@@ -32,15 +34,22 @@ public class RgbLed {
         blue.dutyCycle(b);
     }
 
+    public void setColor(Color color) throws IOException {
+        System.out.println("color: " + color);
+        red.dutyCycle(color.getRed());
+        green.dutyCycle(color.getGreen());
+        blue.dutyCycle(color.getBlue());
+    }
+
     public void fade(Color from, Color to, long delay) throws IOException {
         for (int i = 0; i <= 1000; i++) {
-            currentColor.red = from.red  + i * (to.red - from.red) / 1000;
-            currentColor.green = from.green + i * (to.green - from.green) / 1000;
-            currentColor.blue = from.blue + i * (to.blue - from.blue) / 1000;
-            System.out.printf("rgb %1.3f  %1.3f  %1.3f\r", currentColor.red, currentColor.green, currentColor.blue);
-            red.dutyCycle(currentColor.red);
-            green.dutyCycle(currentColor.green);
-            blue.dutyCycle(currentColor.blue);
+            currentRed = (short) (from.getRed()  + i * (to.getRed() - from.getRed()) / 1000);
+            currentGreen = (short) (from.getGreen() + i * (to.getGreen() - from.getGreen()) / 1000);
+            currentBlue = (short) (from.getBlue() + i * (to.getBlue() - from.getBlue()) / 1000);
+            System.out.printf("rgb %d  %d  %d\r", currentRed, currentGreen, currentBlue);
+            red.dutyCycle(currentRed);
+            green.dutyCycle(currentGreen);
+            blue.dutyCycle(currentBlue);
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
@@ -48,23 +57,48 @@ public class RgbLed {
         }
     }
 
-    public void fadeTo(Color color, long delay) throws IOException {
-        float fromRed = currentColor.red;
-        float fromGreen = currentColor.green;
-        float fromBlue = currentColor.blue;
+    public void fadeTo(Color color, int loopCount, long delay) throws IOException {
+        short fromRed = currentRed;
+        short fromGreen = currentGreen;
+        short fromBlue = currentBlue;
 
-        for (int i = 0; i <= 1000; i++) {
-            currentColor.red = fromRed  + i * (color.red - fromRed) / 1000;
-            currentColor.green = fromGreen + i * (color.green - fromGreen) / 1000;
-            currentColor.blue = fromBlue + i * (color.blue - fromBlue) / 1000;
-            System.out.printf("rgb %1.3f  %1.3f  %1.3f\r", currentColor.red, currentColor.green, currentColor.blue);
-            red.dutyCycle(currentColor.red);
-            green.dutyCycle(currentColor.green);
-            blue.dutyCycle(currentColor.blue);
+        System.out.println("color: " + color);
+
+        for (int i = 0; i <= loopCount; i++) {
+            System.out.printf("rgb %d %d  %d\n", i, (int) color.getRed() - fromRed, (int) i * (color.getRed() - fromRed) / loopCount);
+            currentRed = (short) (fromRed  + i * (color.getRed() - fromRed) / loopCount);
+            currentGreen = (short) (fromGreen + i * (color.getGreen() - fromGreen) / loopCount);
+            currentBlue = (short) (fromBlue + i * (color.getBlue() - fromBlue) / loopCount);
+//            System.out.printf("rgb %d  %d  %d\r", (int) currentRed, (int) currentGreen, (int) currentBlue);
+            red.dutyCycle(currentRed);
+            green.dutyCycle(currentGreen);
+            blue.dutyCycle(currentBlue);
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
             }
         }
+//        System.out.println();
+    }
+
+    public void fadeTo(Color color, long delay, Running running) throws IOException {
+        int fromRed = currentRed;
+        int fromGreen = currentGreen;
+        int fromBlue = currentBlue;
+
+        for (int i = 0; running.isRunning() && i <= 1000; i++) {
+            currentRed = (short) (fromRed  + i * (color.getRed() - fromRed) / 1000);
+            currentGreen = (short) (fromGreen + i * (color.getGreen() - fromGreen) / 1000);
+            currentBlue = (short) (fromBlue + i * (color.getBlue() - fromBlue) / 1000);
+//            System.out.printf("rgb %1.3f  %1.3f  %1.3f\r", currentColor.red, currentColor.green, currentColor.blue);
+            red.dutyCycle(currentRed);
+            green.dutyCycle(currentGreen);
+            blue.dutyCycle(currentBlue);
+            try {
+                Thread.sleep(delay);
+            } catch (InterruptedException e) {
+            }
+        }
+//        System.out.println();
     }
 }
