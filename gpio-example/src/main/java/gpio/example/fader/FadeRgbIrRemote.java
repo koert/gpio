@@ -33,10 +33,10 @@ public class FadeRgbIrRemote {
     };
     private Color[] colors = {
             new Color(1F, 0, 0), new Color(0, 1F, 0), new Color(0, 0, 1F),
-            new Color(1F, 1F, 0), new Color(0, 1F, 1F), new Color(1F, 0, 1F), new Color(0.5F, 0.5F, 0.5F),
-            new Color(0.5F, 1F, 0), new Color(0, 0.5F, 1F), new Color(1F, 0, 0.5F),
-            new Color(0.5F, 1F, 1F), new Color(1F, 0.5F, 1F), new Color(1F, 1F, 0.5F),
-            new Color(0.5F, 1F, 0.5F)
+            new Color(1F, 1F, 0), new Color(0, 1F, 1F), new Color(1F, 0, 1F), new Color(0.2F, 0.2F, 0.2F),
+            new Color(0.3F, 1F, 0), new Color(0, 0.3F, 1F), new Color(1F, 0, 0.3F),
+            new Color(0.3F, 1F, 1F), new Color(1F, 0.3F, 1F), new Color(1F, 1F, 0.3F),
+            new Color(0.3F, 1F, 0.3F)
     };
     private Color nightLight = new Color(0.1F, 0.05F, 0.05F);
 
@@ -68,9 +68,30 @@ public class FadeRgbIrRemote {
         inputCommands.put(IrInput.KEY_2, new IrKey2());
         inputCommands.put(IrInput.KEY_ON, new IrKeyOn());
         inputCommands.put(IrInput.KEY_OFF, new IrKeyOff());
-        inputCommands.put(IrInput.KEY_FADE, new IrKeyFade(5L));
+        inputCommands.put(IrInput.KEY_FADE, new IrKeyFade(3L));
         inputCommands.put(IrInput.KEY_SMOOTH, new IrKeyFade(50L));
         inputCommands.put(IrInput.KEY_FLASH, new IrKeyMotionDetectOn());
+
+        inputCommands.put(IrInput.KEY_RED1, new IrKeyColor(new Color(0.8F, 0, 0)));
+        inputCommands.put(IrInput.KEY_GREEN1, new IrKeyColor(new Color(0, 0.8F, 0)));
+        inputCommands.put(IrInput.KEY_BLUE1, new IrKeyColor(new Color(0, 0, 0.8F)));
+
+        inputCommands.put(IrInput.KEY_RED2, new IrKeyColor(new Color(0.8F, 0.2F, 0)));
+        inputCommands.put(IrInput.KEY_GREEN2, new IrKeyColor(new Color(0, 0.8F, 0.2F)));
+        inputCommands.put(IrInput.KEY_BLUE2, new IrKeyColor(new Color(0.2F, 0, 0.8F)));
+
+        inputCommands.put(IrInput.KEY_RED3, new IrKeyColor(new Color(0.8F, 0.4F, 0)));
+        inputCommands.put(IrInput.KEY_GREEN3, new IrKeyColor(new Color(0, 0.8F, 0.4F)));
+        inputCommands.put(IrInput.KEY_BLUE3, new IrKeyColor(new Color(0.4F, 0, 0.8F)));
+
+        inputCommands.put(IrInput.KEY_RED4, new IrKeyColor(new Color(0.8F, 0.6F, 0)));
+        inputCommands.put(IrInput.KEY_GREEN4, new IrKeyColor(new Color(0, 0.8F, 0.6F)));
+        inputCommands.put(IrInput.KEY_BLUE4, new IrKeyColor(new Color(0.6F, 0, 0.8F)));
+
+        inputCommands.put(IrInput.KEY_RED5, new IrKeyColor(new Color(0.8F, 0.8F, 0)));
+        inputCommands.put(IrInput.KEY_GREEN5, new IrKeyColor(new Color(0, 0.8F, 0.8F)));
+        inputCommands.put(IrInput.KEY_BLUE5, new IrKeyColor(new Color(0.8F, 0, 0.8F)));
+
         irInputThread = new IrInputThread(commandQueue, gpio.binaryInputPin(BeagleboneGPio.P9_11), inputCommands);
         pirSensorInputThread = new PirSensorInputThread(commandQueue, gpio.binaryInputPin(BeagleboneGPio.P9_13),
                 new MotionDetected());
@@ -239,6 +260,23 @@ public class FadeRgbIrRemote {
         }
     }
 
+    private class IrKeyColor extends Command {
+        private Color color;
+        public IrKeyColor(Color color) {
+            this.color = color;
+        }
+        @Override
+        public void run() {
+            System.out.println("IrKeyColor " + color);
+            try {
+                state = State.ON;
+                rgbLed.fadeTo(color, 2L, getRunning());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private class IrKeyFade extends Command {
         private long delay;
 
@@ -254,7 +292,12 @@ public class FadeRgbIrRemote {
                 Running running = getRunning();
                 while (running.isRunning()) {
                     for (int i=0; running.isRunning() && i<colors.length; i++) {
+                        System.out.println("color: " + colors[i]);
                         rgbLed.fadeTo(colors[i], 40L, running);
+                        try {
+                            Thread.sleep(delay * 200);
+                        } catch (InterruptedException e) {
+                        }
                     }
                 }
                 rgbLed.fadeTo(Color.BLACK, 100, 10L);
