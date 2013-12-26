@@ -68,6 +68,8 @@ public class FadeRgbIrRemote {
         inputCommands.put(IrInput.KEY_2, new IrKey2());
         inputCommands.put(IrInput.KEY_ON, new IrKeyOn());
         inputCommands.put(IrInput.KEY_OFF, new IrKeyOff());
+        inputCommands.put(IrInput.KEY_FADE, new IrKeyFade(5L));
+        inputCommands.put(IrInput.KEY_SMOOTH, new IrKeyFade(50L));
         inputCommands.put(IrInput.KEY_FLASH, new IrKeyMotionDetectOn());
         irInputThread = new IrInputThread(commandQueue, gpio.binaryInputPin(BeagleboneGPio.P9_11), inputCommands);
         pirSensorInputThread = new PirSensorInputThread(commandQueue, gpio.binaryInputPin(BeagleboneGPio.P9_13),
@@ -231,6 +233,31 @@ public class FadeRgbIrRemote {
             try {
                 state = State.OFF;
                 rgbLed.fadeTo(Color.BLACK, 1L, getRunning());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class IrKeyFade extends Command {
+        private long delay;
+
+        private IrKeyFade(long delay) {
+            this.delay = delay;
+        }
+
+        @Override
+        public void run() {
+            System.out.println("IrKeyFade");
+            try {
+                state = State.ON;
+                Running running = getRunning();
+                while (running.isRunning()) {
+                    for (int i=0; running.isRunning() && i<colors.length; i++) {
+                        rgbLed.fadeTo(colors[i], 40L, running);
+                    }
+                }
+                rgbLed.fadeTo(Color.BLACK, 100, 10L);
             } catch (IOException e) {
                 e.printStackTrace();
             }
