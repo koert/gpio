@@ -46,7 +46,6 @@ public class RgbLed {
             currentRed = (short) (from.getRed()  + i * (to.getRed() - from.getRed()) / 1000);
             currentGreen = (short) (from.getGreen() + i * (to.getGreen() - from.getGreen()) / 1000);
             currentBlue = (short) (from.getBlue() + i * (to.getBlue() - from.getBlue()) / 1000);
-            System.out.printf("rgb %d  %d  %d\r", currentRed, currentGreen, currentBlue);
             red.dutyCycle(currentRed);
             green.dutyCycle(currentGreen);
             blue.dutyCycle(currentBlue);
@@ -62,10 +61,7 @@ public class RgbLed {
         short fromGreen = currentGreen;
         short fromBlue = currentBlue;
 
-        System.out.println("color: " + color);
-
         for (int i = 0; i <= loopCount; i++) {
-            System.out.printf("rgb %d %d  %d\n", i, (int) color.getRed() - fromRed, (int) i * (color.getRed() - fromRed) / loopCount);
             currentRed = (short) (fromRed  + i * (color.getRed() - fromRed) / loopCount);
             currentGreen = (short) (fromGreen + i * (color.getGreen() - fromGreen) / loopCount);
             currentBlue = (short) (fromBlue + i * (color.getBlue() - fromBlue) / loopCount);

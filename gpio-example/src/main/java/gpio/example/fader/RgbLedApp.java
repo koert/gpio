@@ -20,8 +20,7 @@ public class RgbLedApp {
         new Color(1F, 1F, 0), new Color(0, 1F, 1F), new Color(1F, 0, 1F), new Color(0.5F, 0.5F, 0.5F),
         new Color(0.5F, 1F, 0), new Color(0, 0.5F, 1F), new Color(1F, 0, 0.5F),
         new Color(0.5F, 1F, 1F), new Color(1, 0.5F, 1F), new Color(1F, 1F, 0.5F),
-        new Color(0.5F, 1F, 0.5F),
-        new Color(0, 0, 0)
+        new Color(0.5F, 1F, 0.5F)
     };
     private Color black = new Color(0, 0, 0);
     private Color white = new Color(1, 1, 1);
@@ -58,11 +57,12 @@ public class RgbLedApp {
         rgbLed.setColor(black);
         for (int i=0; i < 10; i++) {
             for (Color color : colors) {
-                rgbLed.fadeTo(color, 100, 100L);
+                System.out.println("color: " + color);
+                rgbLed.fadeTo(color, 100, 200L);
             }
         }
 //        rgbLed.fadeTo(new Color(0.5F, 0.5F, 0.5F), 10, 1000L);
-        rgbLed.fadeTo(black, 100, 100L);
+        rgbLed.fadeTo(black, 100, 500L);
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
