@@ -14,4 +14,21 @@ public abstract class Command implements Runnable {
     protected boolean isRunning() {
         return running;
     }
+
+    protected Running getRunning() {
+        Running running = new Running() {
+            private boolean interrupted = false;
+            @Override public boolean isRunning() {
+                if (!interrupted) {
+                    interrupted = Thread.currentThread().isInterrupted();
+                }
+                if (interrupted) {
+                    System.out.println("isRunning: " + interrupted);
+                }
+                return !interrupted;
+            }
+        };
+        return running;
+    }
+
 }

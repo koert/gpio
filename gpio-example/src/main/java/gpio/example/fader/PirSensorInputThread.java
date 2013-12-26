@@ -36,6 +36,7 @@ public class PirSensorInputThread extends Thread {
                 if (pin.isHigh()) {
                     System.out.println("isHigh");
                     commandQueue.offer(command);
+                    System.out.println("offered");
                 } else {
                     System.out.println("isLow");
                 }

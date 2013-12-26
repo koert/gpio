@@ -61,7 +61,6 @@ public class RgbLedApp {
                 rgbLed.fadeTo(color, 100, 200L);
             }
         }
-//        rgbLed.fadeTo(new Color(0.5F, 0.5F, 0.5F), 10, 1000L);
         rgbLed.fadeTo(black, 100, 500L);
         try {
             Thread.sleep(10000);

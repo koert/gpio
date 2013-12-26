@@ -20,6 +20,7 @@ public class IrInputThread extends Thread {
                          Map<IrInput, Command> inputCommands) {
         this.commandQueue = commandQueue;
         this.pin = pin;
+        this.inputCommands = inputCommands;
     }
 
     @Override

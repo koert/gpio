@@ -12,6 +12,9 @@ public class Color {
     private short green;
     private short blue;
 
+    public static final Color BLACK = new Color(0, 0, 0);
+    public static final Color WHITE = new Color(1F, 1F, 1F);
+
     public Color(float red, float green, float blue) {
         this.red = floatToShort(red);
         this.green = floatToShort(green);

@@ -48,7 +48,7 @@ public class IrReceiverInput {
 //        }
 //        System.out.println();
 //        System.out.print("* ");
-        StringBuilder builder = new StringBuilder("* ");
+        StringBuilder builder = new StringBuilder();
         for (Long t : times) {
             long x = (t + margin) / resolutionNs;
             builder.append(x).append(".");

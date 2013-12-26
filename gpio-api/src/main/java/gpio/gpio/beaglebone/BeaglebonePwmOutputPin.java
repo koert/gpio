@@ -96,10 +96,15 @@ public class BeaglebonePwmOutputPin implements PwmOutputPin {
         if (dutyCycle < 0) {
             new IllegalArgumentException("dutyCycle must have a value from 0 to (including) Short.MAX_VALUE");
         }
+        try {
         this.dutyCycle = (long) (this.periodNs * dutyCycle / Short.MAX_VALUE);
         this.duty.write(Long.toString(this.dutyCycle));
 //        System.out.println("dutyCycle " + periodNs + " " + dutyCycle + " " + this.dutyCycle);
         this.duty.flush();
+        } catch (IOException e) {
+            System.out.println("IOException dutyCycle=" + dutyCycle);
+            throw e;
+        }
         return this;
     }
 

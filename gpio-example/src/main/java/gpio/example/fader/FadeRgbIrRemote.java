@@ -19,28 +19,28 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class FadeRgbIrRemote {
 
     private Gpio gpio = new Gpio(new BeagleboneGpioFactory());
-    private BlockingQueue<IrInput> inputQueue = new LinkedBlockingQueue<IrInput>();
-    private BlockingQueue<Command> commandQueue = new LinkedBlockingQueue<Command>();
+//    private BlockingQueue<IrInput> inputQueue = new LinkedBlockingQueue<IrInput>();
+    private BlockingQueue<Command> commandQueue = new LinkedBlockingQueue<Command>(10);
     private IrInputThread irInputThread;
     private Map<IrInput, Command> inputCommands = new HashMap<IrInput, Command>();
     private PirSensorInputThread pirSensorInputThread;
     private Thread currentCommandThread;
 
+    private enum State { ON, OFF, MOTION_ON }
+
     private Color[] colors0 = {
         new Color(1, 0, 0), new Color(0, 1, 0), new Color(0, 0, 1)
     };
     private Color[] colors = {
-            new Color(1, 0, 0), new Color(0, 1, 0), new Color(0, 0, 1),
-            new Color(1, 1, 0), new Color(0, 1, 1), new Color(1, 0, 1), new Color(0.5F, 0.5F, 0.5F),
-            new Color(0.5F, 1, 0), new Color(0, 0.5F, 1), new Color(1, 0, 0.5F),
-            new Color(0.5F, 1, 1), new Color(1, 0.5F, 1), new Color(1, 1, 0.5F),
-            new Color(0.5F, 1, 0.5F),
-            new Color(0, 0, 0)
+            new Color(1F, 0, 0), new Color(0, 1F, 0), new Color(0, 0, 1F),
+            new Color(1F, 1F, 0), new Color(0, 1F, 1F), new Color(1F, 0, 1F), new Color(0.5F, 0.5F, 0.5F),
+            new Color(0.5F, 1F, 0), new Color(0, 0.5F, 1F), new Color(1F, 0, 0.5F),
+            new Color(0.5F, 1F, 1F), new Color(1F, 0.5F, 1F), new Color(1F, 1F, 0.5F),
+            new Color(0.5F, 1F, 0.5F)
     };
-    private Color black = new Color(0, 0, 0);
-    private Color white = new Color(1, 1, 1);
-    private Color whiteLow = new Color(0.3F, 0.1F, 0.1F);
+    private Color nightLight = new Color(0.1F, 0.05F, 0.05F);
 
+    private State state = State.OFF;
     private RgbLed rgbLed;
     private FaderThread faderThread;
     private Timer timer = new Timer(true);
@@ -66,6 +66,9 @@ public class FadeRgbIrRemote {
     public FadeRgbIrRemote() throws IOException {
         inputCommands.put(IrInput.KEY_1, new IrKey1());
         inputCommands.put(IrInput.KEY_2, new IrKey2());
+        inputCommands.put(IrInput.KEY_ON, new IrKeyOn());
+        inputCommands.put(IrInput.KEY_OFF, new IrKeyOff());
+        inputCommands.put(IrInput.KEY_FLASH, new IrKeyMotionDetectOn());
         irInputThread = new IrInputThread(commandQueue, gpio.binaryInputPin(BeagleboneGPio.P9_11), inputCommands);
         pirSensorInputThread = new PirSensorInputThread(commandQueue, gpio.binaryInputPin(BeagleboneGPio.P9_13),
                 new MotionDetected());
@@ -99,56 +102,27 @@ public class FadeRgbIrRemote {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         if (command != null) {
-            if (currentCommandThread != null) {
-                System.out.println("interrupt");
-                currentCommandThread.interrupt();
-                try {
-                    currentCommandThread.join(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            if (command instanceof MotionDetected || state != State.MOTION_ON) {
+                if (currentCommandThread != null) {
+                    System.out.println("send interrupt");
+                    currentCommandThread.interrupt();
+                    try {
+                        currentCommandThread.join(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+
+                currentCommandThread = new Thread(command);
+                currentCommandThread.start();
             }
-
-            currentCommandThread = new Thread(command);
-            currentCommandThread.run();
-        }
-        return running;
-    }
-
-    private boolean takeFromIrInput() throws IOException {
-        boolean running = true;
-        IrInput input = null;
-        try {
-            input = inputQueue.take();
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-        switch (input) {
-            case KEY_1:
-                try {
-                    faderThread.interrupt();
-                    faderThread.join();
-                } catch (InterruptedException e) {
-                }
-                faderThread = new FaderThread(rgbLed, colors0);
-                faderThread.run();
-                break;
-            case KEY_2:
-                try {
-                    faderThread.interrupt();
-                    faderThread.join();
-                } catch (InterruptedException e) {
-                }
-                rgbLed.fadeTo(Color.black, 1000, 10);
-                running = false;
-                break;
         }
         return running;
     }
 
     public void fade() throws IOException {
 
-        Color currentColor = black;
+        Color currentColor = Color.BLACK;
         for (Color color : colors) {
             rgbLed.fade(currentColor, color, 10);
             currentColor = color;
@@ -190,37 +164,35 @@ public class FadeRgbIrRemote {
     private class MotionDetected extends Command {
         @Override
         public void run() {
-            System.out.println("MotionDetectedStart on");
-            Running running = new Running() {
-                private boolean interrupted = false;
-                @Override public boolean isRunning() {
-                    interrupted = Thread.currentThread().isInterrupted();
-                    if (interrupted) {
-                        System.out.println("isRunning: " + interrupted);
+            if (state == State.MOTION_ON) {
+                System.out.println("MotionDetectedStart on");
+                Running running = new Running() {
+                    private boolean interrupted = false;
+                    @Override public boolean isRunning() {
+                        if (!interrupted) {
+                            interrupted = Thread.currentThread().isInterrupted();
+                        }
+                        if (interrupted) {
+                            System.out.println("isRunning: " + interrupted);
+                        }
+                        return !interrupted;
                     }
-                    return !interrupted;
+                };
+                try {
+                    rgbLed.fadeTo(nightLight, 1, running);
+                    if (running.isRunning()) {
+                        try {
+                            Thread.sleep(10000);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    if (running.isRunning()) {
+                        rgbLed.fadeTo(Color.BLACK, 1, running);
+                    }
+                    System.out.println("MotionDetected done");
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            };
-            try {
-                rgbLed.fadeTo(whiteLow, 1, running);
-//                for(int i=0; isRunning() && i<=100; i++) {
-//                    pwmOutputPin.dutyCycle((float) i / 100);
-//                    Thread.sleep(10);
-//                }
-                if (running.isRunning()) {
-                    Thread.sleep(10000);
-                }
-//                for(int i=100; isRunning() && i>=0; i--) {
-//                    pwmOutputPin.dutyCycle((float) i / 100);
-//                    Thread.sleep(10);
-//                }
-                System.out.println("MotionDetectedStart off");
-//                pwmOutputPin.dutyCycle(0.0F);
-                rgbLed.fadeTo(black, 1, running);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -236,6 +208,51 @@ public class FadeRgbIrRemote {
         @Override
         public void run() {
             System.out.println("IrKey2");
+        }
+    }
+
+    private class IrKeyOn extends Command {
+        @Override
+        public void run() {
+            System.out.println("IrKeyOn");
+            try {
+                state = State.ON;
+                rgbLed.fadeTo(Color.WHITE, 1L, getRunning());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class IrKeyOff extends Command {
+        @Override
+        public void run() {
+            System.out.println("IrKeyOff");
+            try {
+                state = State.OFF;
+                rgbLed.fadeTo(Color.BLACK, 1L, getRunning());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class IrKeyMotionDetectOn extends Command {
+        @Override
+        public void run() {
+            System.out.println("IrKeyMotionDetectOn");
+            try {
+                state = State.MOTION_ON;
+                rgbLed.fadeTo(Color.BLACK, 1L, getRunning());
+                rgbLed.setColor(nightLight);
+                try {
+                    Thread.sleep(10L);
+                } catch (InterruptedException e) {
+                }
+                rgbLed.fadeTo(Color.BLACK, 1L, getRunning());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
