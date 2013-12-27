@@ -1,8 +1,8 @@
 package gpio;
 
-import gpio.gpio.beaglebone.BeagleboneBinaryInputPin;
-import gpio.gpio.beaglebone.BeagleboneBinaryOutputPin;
-import gpio.gpio.beaglebone.BeaglebonePwmOutputPin;
+import gpio.beaglebone.BeagleboneBinaryInputPin;
+import gpio.beaglebone.BeagleboneBinaryOutputPin;
+import gpio.beaglebone.BeaglebonePwmOutputPin;
 
 import java.io.IOException;
 

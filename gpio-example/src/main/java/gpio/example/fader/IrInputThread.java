@@ -1,7 +1,7 @@
 package gpio.example.fader;
 
 import gpio.BinaryInputPin;
-import gpio.gpio.beaglebone.IrReceiverInput;
+import gpio.beaglebone.IrReceiverInput;
 
 import java.io.IOException;
 import java.util.Map;
@@ -11,6 +11,9 @@ import java.util.concurrent.BlockingQueue;
  * @author Koert Zeilstra
  */
 public class IrInputThread extends Thread {
+
+    private static final String PREFIX = "16.8.";
+    private static final int SEQUENCE_LENGTH = 129;
 
     private BlockingQueue<Command> commandQueue;
     private BinaryInputPin pin;
@@ -29,13 +32,17 @@ public class IrInputThread extends Thread {
         try {
             irRemoteInput = new IrReceiverInput(pin, 576554, 200);
             while(!isInterrupted()) {
-                String sequence = irRemoteInput.readSequence();
-                System.out.println("readSequence " + sequence);
-                IrInput irInput = IrInput.valueOfSequence(sequence);
-                if (irInput != null) {
-                    System.out.println("irInput " + irInput.name());
-                    if (inputCommands.containsKey(irInput)) {
-                        commandQueue.offer(inputCommands.get(irInput));
+                String rawSequence = irRemoteInput.readSequence();
+                System.out.println("readSequence " + rawSequence);
+                if (rawSequence.startsWith(PREFIX) && rawSequence.length() > PREFIX.length() + SEQUENCE_LENGTH) {
+                    String sequence = rawSequence.substring(PREFIX.length(), PREFIX.length() + SEQUENCE_LENGTH);
+                    System.out.println("sequence " + sequence);
+                    IrInput irInput = IrInput.valueOfSequence(sequence);
+                    if (irInput != null) {
+                        System.out.println("irInput " + irInput.name());
+                        if (inputCommands.containsKey(irInput)) {
+                            commandQueue.offer(inputCommands.get(irInput));
+                        }
                     }
                 }
             }

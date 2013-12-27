@@ -1,4 +1,4 @@
-package gpio.gpio.beaglebone;
+package gpio.beaglebone;
 
 /**
  * @author Koert Zeilstra

@@ -2,7 +2,7 @@ package gpio.example.fader;
 
 import gpio.BinaryInputPin;
 import gpio.Edge;
-import gpio.gpio.beaglebone.InputPinChangeMonitor;
+import gpio.beaglebone.InputPinChangeMonitor;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;

@@ -1,7 +1,7 @@
 package gpio.example;
 
 import gpio.*;
-import gpio.gpio.beaglebone.InputPinChangeMonitor;
+import gpio.beaglebone.InputPinChangeMonitor;
 
 import java.io.IOException;
 import java.util.ArrayList;

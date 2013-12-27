@@ -4,8 +4,8 @@ import gpio.BeagleboneGPio;
 import gpio.BeagleboneGpioFactory;
 import gpio.BinaryInputPin;
 import gpio.Gpio;
-import gpio.gpio.beaglebone.InputPinChangeMonitor;
-import gpio.gpio.beaglebone.IrReceiverInput;
+import gpio.beaglebone.InputPinChangeMonitor;
+import gpio.beaglebone.IrReceiverInput;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package gpio.gpio.beaglebone;
+package gpio.beaglebone;
 
 import gpio.*;
 import gpio.epoll.FileMonitor;

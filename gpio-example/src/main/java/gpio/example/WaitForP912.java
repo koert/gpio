@@ -1,7 +1,7 @@
 package gpio.example;
 
 import gpio.*;
-import gpio.gpio.beaglebone.InputPinChangeMonitor;
+import gpio.beaglebone.InputPinChangeMonitor;
 
 /**
  * Test program that waits for and reads the value of the P9_12 input.

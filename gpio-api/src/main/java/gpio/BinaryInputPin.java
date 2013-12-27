@@ -1,6 +1,6 @@
 package gpio;
 
-import gpio.gpio.beaglebone.InputPinChangeMonitor;
+import gpio.beaglebone.InputPinChangeMonitor;
 
 import java.io.IOException;
 

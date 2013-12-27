@@ -189,21 +189,11 @@ public class FadeRgbIrRemote {
         public void run() {
             if (state == State.MOTION_ON) {
                 System.out.println("MotionDetectedStart on");
-                Running running = new Running() {
-                    private boolean interrupted = false;
-                    @Override public boolean isRunning() {
-                        if (!interrupted) {
-                            interrupted = Thread.currentThread().isInterrupted();
-                        }
-                        if (interrupted) {
-                            System.out.println("isRunning: " + interrupted);
-                        }
-                        return !interrupted;
-                    }
-                };
+                Running running = getRunning();
                 try {
                     rgbLed.fadeTo(nightLight, 1, running);
                     if (running.isRunning()) {
+                        +
                         try {
                             Thread.sleep(10000);
                         } catch (InterruptedException e) {
@@ -313,13 +303,14 @@ public class FadeRgbIrRemote {
             System.out.println("IrKeyMotionDetectOn");
             try {
                 state = State.MOTION_ON;
-                rgbLed.fadeTo(Color.BLACK, 1L, getRunning());
+                Running running = getRunning();
+                rgbLed.fadeTo(Color.BLACK, 1L, running);
                 rgbLed.setColor(nightLight);
                 try {
                     Thread.sleep(10L);
                 } catch (InterruptedException e) {
                 }
-                rgbLed.fadeTo(Color.BLACK, 1L, getRunning());
+                rgbLed.fadeTo(Color.BLACK, 1L, running);
             } catch (IOException e) {
                 e.printStackTrace();
             }
